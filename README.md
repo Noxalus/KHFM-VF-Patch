@@ -1,2 +1,3 @@
-# KHFM-French-Patch
-A french patch for the PC version of Kingdom Hearts Final Mix
+# Kingdom Hearts Final Mix PC - Patch Français 
+
+Patch français pour la version PC de Kingdom Hearts Final Mix.
