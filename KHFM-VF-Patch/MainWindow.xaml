@@ -9,6 +9,7 @@
         ResizeMode="NoResize">
     <Grid>
         <TextBlock>Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé. Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu sur votre machine.</TextBlock>
+        <ProgressBar Minimum="0" Maximum="100" Value="{Binding PatchState}" Margin="150,67,156,339"/>
         <Button Width="450" Content="Chercher le dossier du jeu" Click="Button_Click" Height="109" Visibility="Visible" Margin="175,281,175,44"/>
     </Grid>
 </Window>

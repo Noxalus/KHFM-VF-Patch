@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,22 +21,43 @@ using Path = System.IO.Path;
 
 namespace KHFM_VF_Patch
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "Saves";
         private static readonly List<string> REQUIRED_FILES = new List<string>()
         {
             "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
-            "Image/en/kh1_second.pkg", "Image/en/kh1_second.hed",
             "Image/en/kh1_third.pkg", "Image/en/kh1_third.hed",
             "Image/en/kh1_fourth.pkg", "Image/en/kh1_fourth.hed",
             "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
         };
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        private BackgroundWorker _worker = new BackgroundWorker();
+        private float _patchState = 0f;
+
+        public float PatchState
+        {
+            get { return _patchState; }
+            set
+            {
+                _patchState = value;
+                if (PropertyChanged != null)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("PatchState"));
+                }
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = this;
+
+            //_worker.DoWork += DoWork;
+            //_worker.RunWorkerAsync();
 
             if (CheckGameFolder(DEFAULT_GAME_FOLDER))
             {
@@ -45,6 +68,17 @@ namespace KHFM_VF_Patch
             {
                 Debug.WriteLine("Default game folder not found.");
             }
+        }
+
+        private void DoWork(object sender, DoWorkEventArgs e)
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                Thread.Sleep(1000);
+                PatchState = i;
+            }
+
+            System.Windows.MessageBox.Show("Work is done!");
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -93,7 +127,7 @@ namespace KHFM_VF_Patch
             return true;
         }
 
-        private void Patch(string gameFolder)
+        private async Task Patch(string gameFolder)
         {
             Debug.WriteLine("Patch the game!!!");
 
@@ -106,8 +140,21 @@ namespace KHFM_VF_Patch
 
                 foreach (var requiredFile in REQUIRED_FILES)
                 {
-                    var completePath = Path.Combine(gameFolder, requiredFile);
-                    File.Copy(completePath, Path.Combine(saveFolder, Path.GetFileName(requiredFile)));
+                    var source = Path.Combine(gameFolder, requiredFile);
+                    var destination = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
+                    var filename = source;
+
+                    var fileSize = new FileInfo(filename).Length;
+
+                    IProgress<long> progress = new Progress<long>(value =>
+                    {
+                        var progress = (float)(value * 100) / fileSize;
+
+                        PatchState = progress;
+                        Debug.WriteLine("{1} {0:N2}%", progress, filename);
+                    });
+
+                    await CopyToAsync(source, destination, progress, default, 0x100000);
                 }
             }
             else
@@ -115,11 +162,28 @@ namespace KHFM_VF_Patch
                 // TODO(bth): Show a button to unpatch the game
 
                 // Copy saved files in the original folder back, to make sure we patch the original files
-                foreach (var requiredFile in REQUIRED_FILES)
-                {
-                    var completePath = Path.Combine(gameFolder, requiredFile);
-                    File.Copy(completePath, Path.Combine(Path.GetFileName(requiredFile), saveFolder), true);
-                }
+                //foreach (var requiredFile in REQUIRED_FILES)
+                //{
+                //    var completePath = Path.Combine(gameFolder, requiredFile);
+                //    File.Copy(completePath, Path.Combine(Path.GetFileName(requiredFile), saveFolder), true);
+                //}
+            }
+        }
+
+        public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<long> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
+        {
+            var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var destinationStream = new FileStream(destinationFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var buffer = new byte[bufferSize];
+            int bytesRead;
+            long totalRead = 0;
+
+            while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            {
+                await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                totalRead += bytesRead;
+                progress.Report(totalRead);
             }
         }
     }
