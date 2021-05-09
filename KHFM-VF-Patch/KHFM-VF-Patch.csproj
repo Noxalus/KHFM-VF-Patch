@@ -10,8 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="resources\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="patch\" />
     <Folder Include="tools\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="resources\logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

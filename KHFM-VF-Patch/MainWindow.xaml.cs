@@ -35,6 +35,7 @@ namespace KHFM_VF_Patch
 
         public event PropertyChangedEventHandler PropertyChanged;
         private float _patchState = 0f;
+        private string _selectedGameFolder;
 
         public float PatchState
         {
@@ -55,10 +56,12 @@ namespace KHFM_VF_Patch
 
             DataContext = this;
 
+            SearchGameFolderState();
+
             if (CheckGameFolder(DEFAULT_GAME_FOLDER))
             {
-                // TODO: Hide the "browse" button
-                Patch(DEFAULT_GAME_FOLDER);
+                _selectedGameFolder = DEFAULT_GAME_FOLDER;
+                ReadyToPatchState();
             }
             else
             {
@@ -66,7 +69,19 @@ namespace KHFM_VF_Patch
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void SearchGameFolderState()
+        {
+            BrowseButton.Visibility = Visibility.Visible;
+            PatchButton.Visibility = Visibility.Collapsed;
+        }
+
+        private void ReadyToPatchState()
+        {
+            BrowseButton.Visibility = Visibility.Collapsed;
+            PatchButton.Visibility = Visibility.Visible;
+        }
+
+        private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
         {
             using (var dialog = new FolderBrowserDialog())
             {
@@ -78,7 +93,8 @@ namespace KHFM_VF_Patch
 
                     if (CheckGameFolder(dialog.SelectedPath))
                     {
-                        Patch(dialog.SelectedPath);
+                        _selectedGameFolder = dialog.SelectedPath;
+                        ReadyToPatchState();
                     }
                     else
                     {
@@ -86,6 +102,11 @@ namespace KHFM_VF_Patch
                     }
                 }
             }
+        }
+
+        private void PatchGameButtonClick(object sender, RoutedEventArgs e)
+        {
+            _ = Patch(_selectedGameFolder);
         }
 
         private bool CheckGameFolder(string folder)
