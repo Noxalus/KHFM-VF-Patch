@@ -7,10 +7,22 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>icon.ico</ApplicationIcon>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>Noxalus.pfx</AssemblyOriginatorKeyFile>
+    <Description>Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix française de la version PS2 de 2002.</Description>
+    <Copyright>Noxalus</Copyright>
+    <PackageProjectUrl>https://noxalus.io</PackageProjectUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/Noxalus/KHFM-VF-Patch</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="resources\logo.png" />
+    <None Include="resources\logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
