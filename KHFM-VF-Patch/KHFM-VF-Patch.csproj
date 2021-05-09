@@ -5,6 +5,12 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>KHFM_French_Patch</RootNamespace>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="patch\" />
+    <Folder Include="tools\" />
+  </ItemGroup>
 
 </Project>

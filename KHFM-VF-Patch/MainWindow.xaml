@@ -1,12 +1,12 @@
-﻿<Window x:Class="KHFM_French_Patch.MainWindow"
+﻿<Window x:Class="KHFM_VF_Patch.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:KHFM_French_Patch"
+        xmlns:local="clr-namespace:KHFM_VF_Patch"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <Button Width="450" Content="Browse" Click="Button_Click" Height="109"></Button>
     </Grid>
 </Window>
