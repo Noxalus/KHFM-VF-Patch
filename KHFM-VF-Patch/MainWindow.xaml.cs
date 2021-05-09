@@ -79,6 +79,8 @@ namespace KHFM_VF_Patch
             BrowseButton.Visibility = Visibility.Visible;
             PatchButton.Visibility = Visibility.Collapsed;
             GameFoundMessage.Visibility = Visibility.Collapsed;
+            PatchProgressionMessage.Visibility = Visibility.Collapsed;
+            PatchProgressBar.Visibility = Visibility.Collapsed;
         }
 
         private void ReadyToPatchState()
@@ -98,6 +100,14 @@ namespace KHFM_VF_Patch
                     "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
                     "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
             }
+        }
+
+        private void PatchingState()
+        {
+            GameFoundMessage.Visibility = Visibility.Collapsed;
+            PatchProgressionMessage.Visibility = Visibility.Visible;
+            PatchProgressBar.Visibility = Visibility.Visible;
+            PatchButton.Visibility = Visibility.Collapsed;
         }
 
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
@@ -133,6 +143,7 @@ namespace KHFM_VF_Patch
 
         private void PatchGameButtonClick(object sender, RoutedEventArgs e)
         {
+            PatchingState();
             _ = Patch(_selectedGameFolder);
         }
 
@@ -196,6 +207,8 @@ namespace KHFM_VF_Patch
 
             if (!Directory.Exists(saveFolder))
             {
+                PatchProgressionMessage.Text = "Sauvegarde des fichiers originaux...";
+
                 Directory.CreateDirectory(saveFolder);
 
                 foreach (var requiredFile in REQUIRED_FILES)
@@ -203,6 +216,8 @@ namespace KHFM_VF_Patch
                     var source = Path.Combine(gameFolder, requiredFile);
                     var destination = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
                     var filename = source;
+
+                    PatchProgressionMessage.Text = $"Sauvegarde de {source}";
 
                     await CopyToAsync(source, destination, progress, default, 0x100000);
                 }
@@ -212,28 +227,39 @@ namespace KHFM_VF_Patch
                 // TODO(bth): Show a button to unpatch the game
 
                 // Copy saved files in the original folder back, to make sure we patch the original files
-                //foreach (var requiredFile in REQUIRED_FILES)
-                //{
-                //    var completePath = Path.Combine(gameFolder, requiredFile);
-                //    File.Copy(completePath, Path.Combine(Path.GetFileName(requiredFile), saveFolder), true);
-                //}
+                foreach (var requiredFile in REQUIRED_FILES)
+                {
+                    var source = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
+                    var destination = Path.Combine(gameFolder, requiredFile);
+
+                    PatchProgressionMessage.Text = $"Restauration de {destination}";
+
+                    await CopyToAsync(source, destination, progress, default, 0x100000);
+                }
             }
         }
 
         public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
         {
-            var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var destinationStream = new FileStream(destinationFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var buffer = new byte[bufferSize];
-            int bytesRead;
-            long totalRead = 0;
-
-            while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            try
             {
-                await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                totalRead += bytesRead;
-                progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
+                var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                var buffer = new byte[bufferSize];
+                int bytesRead;
+                long totalRead = 0;
+
+                while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                {
+                    await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    totalRead += bytesRead;
+                    progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
             }
         }
     }
