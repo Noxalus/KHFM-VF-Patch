@@ -34,7 +34,6 @@ namespace KHFM_VF_Patch
         };
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private BackgroundWorker _worker = new BackgroundWorker();
         private float _patchState = 0f;
 
         public float PatchState
@@ -56,9 +55,6 @@ namespace KHFM_VF_Patch
 
             DataContext = this;
 
-            //_worker.DoWork += DoWork;
-            //_worker.RunWorkerAsync();
-
             if (CheckGameFolder(DEFAULT_GAME_FOLDER))
             {
                 // TODO: Hide the "browse" button
@@ -68,17 +64,6 @@ namespace KHFM_VF_Patch
             {
                 Debug.WriteLine("Default game folder not found.");
             }
-        }
-
-        private void DoWork(object sender, DoWorkEventArgs e)
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                Thread.Sleep(1000);
-                PatchState = i;
-            }
-
-            System.Windows.MessageBox.Show("Work is done!");
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -134,6 +119,18 @@ namespace KHFM_VF_Patch
             // Save the original files
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
 
+            var progress = new Progress<List<object>>(value =>
+            {
+                var copiedSize = (long)value[0];
+                var totalFileSize = (long)value[1];
+                var filename = (string)value[2];
+
+                var progress = ((double)copiedSize / totalFileSize) * 100;
+
+                PatchState = (float)progress;
+                Debug.WriteLine("{1} {0:N2}%", progress, filename);
+            });
+
             if (!Directory.Exists(saveFolder))
             {
                 Directory.CreateDirectory(saveFolder);
@@ -143,16 +140,6 @@ namespace KHFM_VF_Patch
                     var source = Path.Combine(gameFolder, requiredFile);
                     var destination = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
                     var filename = source;
-
-                    var fileSize = new FileInfo(filename).Length;
-
-                    IProgress<long> progress = new Progress<long>(value =>
-                    {
-                        var progress = (float)(value * 100) / fileSize;
-
-                        PatchState = progress;
-                        Debug.WriteLine("{1} {0:N2}%", progress, filename);
-                    });
 
                     await CopyToAsync(source, destination, progress, default, 0x100000);
                 }
@@ -170,7 +157,7 @@ namespace KHFM_VF_Patch
             }
         }
 
-        public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<long> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
+        public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
         {
             var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
             var destinationStream = new FileStream(destinationFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
@@ -183,7 +170,7 @@ namespace KHFM_VF_Patch
                 await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 totalRead += bytesRead;
-                progress.Report(totalRead);
+                progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
             }
         }
     }
