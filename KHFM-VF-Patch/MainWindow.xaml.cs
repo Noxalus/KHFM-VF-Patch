@@ -66,19 +66,38 @@ namespace KHFM_VF_Patch
             else
             {
                 Debug.WriteLine("Default game folder not found.");
+                GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
+                //GameNotFoundWarningMessage.Text =
+                //    "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. " +
+                //    "Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu sur votre machine.";
             }
         }
 
         private void SearchGameFolderState()
         {
+            GameNotFoundWarningMessage.Visibility = Visibility.Visible;
             BrowseButton.Visibility = Visibility.Visible;
             PatchButton.Visibility = Visibility.Collapsed;
+            GameFoundMessage.Visibility = Visibility.Collapsed;
         }
 
         private void ReadyToPatchState()
         {
-            BrowseButton.Visibility = Visibility.Collapsed;
-            PatchButton.Visibility = Visibility.Visible;
+            if (CheckRemainingSpace(_selectedGameFolder))
+            {
+                GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
+                BrowseButton.Visibility = Visibility.Collapsed;
+                PatchButton.Visibility = Visibility.Visible;
+                GameFoundMessage.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                var freeSpace = GetFreeSpace(_selectedGameFolder);
+                GameNotFoundWarningMessage.Visibility = Visibility.Visible;
+                GameNotFoundWarningMessage.Text = "Attention: ce patch s'assure de sauvegarder tous les fichiers originaux avant de les modifier afin que votre jeu ne soit pas cassé s'il y a un problème pendant le processus. " +
+                    "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
+                    "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
+            }
         }
 
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
@@ -98,6 +117,14 @@ namespace KHFM_VF_Patch
                     }
                     else
                     {
+                        GameNotFoundWarningMessage.Visibility = Visibility.Visible;
+
+                        GameNotFoundWarningMessage.Text =
+                            "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
+                            "Il doit s'agir du dossier dans lequel l'Epic Game Store a téléchargé les fichiers du jeu, son nom est \"KH_1.5_2.5\".\n" +
+                            $"Le dossier que vous avez donné: ";
+                        GameNotFoundWarningMessage.Inlines.Add(new Italic(new Run($"\"{dialog.SelectedPath}\"")));
+
                         Debug.WriteLine("The selected folder is not valid!");
                     }
                 }
@@ -131,6 +158,21 @@ namespace KHFM_VF_Patch
             }
 
             return true;
+        }
+
+        private bool CheckRemainingSpace(string folder)
+        {
+            // Required at least 4GB to save original files
+            return GetFreeSpace(folder) > 4e+9;
+        }
+
+        private long GetFreeSpace(string folder)
+        {
+            var folderInfo = new FileInfo(folder);
+            DriveInfo drive = new DriveInfo(folderInfo.Directory.Root.FullName);
+
+            // Required at least 4GB to save original files
+            return drive.AvailableFreeSpace;
         }
 
         private async Task Patch(string gameFolder)
