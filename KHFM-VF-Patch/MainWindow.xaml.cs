@@ -15,12 +15,22 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window
     {
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
+        private const string SAVE_FOLDER_NAME = "Saves";
+        private static readonly List<string> REQUIRED_FILES = new List<string>()
+        {
+            "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
+            "Image/en/kh1_second.pkg", "Image/en/kh1_second.hed",
+            "Image/en/kh1_third.pkg", "Image/en/kh1_third.hed",
+            "Image/en/kh1_fourth.pkg", "Image/en/kh1_fourth.hed",
+            "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
+        };
 
         public MainWindow()
         {
@@ -61,7 +71,7 @@ namespace KHFM_VF_Patch
 
         private bool CheckGameFolder(string folder)
         {
-            var directoryName = System.IO.Path.GetFileName(folder); 
+            var directoryName = Path.GetFileName(folder);
 
             // Check directory name
             if (directoryName != "KH_1.5_2.5")
@@ -70,18 +80,9 @@ namespace KHFM_VF_Patch
             }
 
             // Check PKG/HED files
-            var requiredFiles = new List<string>()
+            foreach (var requiredFile in REQUIRED_FILES)
             {
-                "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
-                "Image/en/kh1_second.pkg", "Image/en/kh1_second.hed",
-                "Image/en/kh1_third.pkg", "Image/en/kh1_third.hed",
-                "Image/en/kh1_fourth.pkg", "Image/en/kh1_fourth.hed",
-                "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
-            };
-
-            foreach (var requiredFile in requiredFiles)
-            {
-                var completePath = System.IO.Path.Combine(folder, requiredFile);
+                var completePath = Path.Combine(folder, requiredFile);
 
                 if (!File.Exists(completePath))
                 {
@@ -94,8 +95,32 @@ namespace KHFM_VF_Patch
 
         private void Patch(string gameFolder)
         {
-            // TODO: Implement this
             Debug.WriteLine("Patch the game!!!");
+
+            // Save the original files
+            var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
+
+            if (!Directory.Exists(saveFolder))
+            {
+                Directory.CreateDirectory(saveFolder);
+
+                foreach (var requiredFile in REQUIRED_FILES)
+                {
+                    var completePath = Path.Combine(gameFolder, requiredFile);
+                    File.Copy(completePath, Path.Combine(saveFolder, Path.GetFileName(requiredFile)));
+                }
+            }
+            else
+            {
+                // TODO(bth): Show a button to unpatch the game
+
+                // Copy saved files in the original folder back, to make sure we patch the original files
+                foreach (var requiredFile in REQUIRED_FILES)
+                {
+                    var completePath = Path.Combine(gameFolder, requiredFile);
+                    File.Copy(completePath, Path.Combine(Path.GetFileName(requiredFile), saveFolder), true);
+                }
+            }
         }
     }
 }

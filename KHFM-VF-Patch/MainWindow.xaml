@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KHFM_VF_Patch"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Kingdom Hearts Final Mix - Patch VF" Height="450" Width="800"
+        ResizeMode="NoResize">
     <Grid>
-        <Button Width="450" Content="Browse" Click="Button_Click" Height="109"></Button>
+        <TextBlock>Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé. Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu sur votre machine.</TextBlock>
+        <Button Width="450" Content="Chercher le dossier du jeu" Click="Button_Click" Height="109" Visibility="Visible" Margin="175,281,175,44"/>
     </Grid>
 </Window>
