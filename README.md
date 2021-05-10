@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="KHFM-VF-Patch/resources/logo.png" alt="logo" width="500"/></div>
+</p>
+
 # Kingdom Hearts Final Mix PC - Patch voix Française 
 
 Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix française de la version PS2 de 2002.
