@@ -1,6 +1,7 @@
 ﻿using Ionic.Zlib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -10,17 +11,26 @@ using Xe.BinaryMapper;
 
 namespace KHFM_VF_Patch
 {
+    public class PatchProgressEventArgs : EventArgs
+    {
+        public int EntriesTotal { get; set; }
+        public int EntriesPatched { get; set; }
+    }
+
     public static class Patcher
     {
+        public static event EventHandler<PatchProgressEventArgs> PatchProgress;
+
         private static readonly string ResourcePath = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "resources");
-        public static readonly Dictionary<string, string> KH1FMNames = File.ReadAllLines(Path.Combine(ResourcePath, "kh1pc.txt"))
-                                                                           .ToDictionary(x => ToString(MD5.HashData(Encoding.UTF8.GetBytes(x))), x => x);
 
         private const string ORIGINAL_FILES_FOLDER_NAME = "original";
         private const string REMASTERED_FILES_FOLDER_NAME = "remastered";
 
         public static void Patch(string pkgFile, string inputFolder, string outputFolder)
         {
+            var kh1Names = File.ReadAllLines(Path.Combine(ResourcePath, "kh1.txt"))
+                               .ToDictionary(x => ToString(MD5.HashData(Encoding.UTF8.GetBytes(x))), x => x);
+
             var originalFilesFolder = Path.Combine(inputFolder, Patcher.ORIGINAL_FILES_FOLDER_NAME);
 
             if (!Directory.Exists(originalFilesFolder))
@@ -49,15 +59,23 @@ namespace KHFM_VF_Patch
 
             pkgStream.SetPosition(0);
 
+            var eventArgs = new PatchProgressEventArgs()
+            {
+                EntriesPatched = 0,
+                EntriesTotal = hedEntries.Count
+            };
+
             foreach (var entry in hedEntries)
             {
                 var hash = ToString(entry.MD5);
 
                 // We don't know this filename, we ignore it
-                if (!KH1FMNames.TryGetValue(hash, out var filename))
+                if (!kh1Names.TryGetValue(hash, out var filename))
                 {
                     continue;
                 }
+
+                Debug.WriteLine(filename);
 
                 // Replace the found files
                 if (inputFiles.Contains(filename))
@@ -68,6 +86,8 @@ namespace KHFM_VF_Patch
                     var fileToInject = Path.Combine(inputFolder, filename);
                     var shouldCompressData = asset.OriginalAssetHeader.CompressedLength > 0;
                     var newHedEntry = ReplaceFile(inputFolder, fileToInject, patchedHedStream, patchedPkgStream, asset, shouldCompressData, entry);
+
+                    Debug.WriteLine($"Replaced file: {filename}");
 
                     //Console.WriteLine("HED");
                     //Console.WriteLine($"ActualLength: {entry.ActualLength} | {newHedEntry.ActualLength}");
@@ -95,6 +115,9 @@ namespace KHFM_VF_Patch
                     // Write the PKG file with the original asset file data
                     patchedPkgStream.Write(data);
                 }
+
+                eventArgs.EntriesPatched++;
+                PatchProgress?.Invoke(null, eventArgs);
             }
 
             // Add all files that are not in the original HED file and inject them in the PKG stream too
