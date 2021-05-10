@@ -277,9 +277,16 @@ namespace KHFM_VF_Patch
 
             using (ZipFile zip = ZipFile.Read(patchFile))
             {
-                PatchProgressionMessage.Text = $"Extraction des fichiers du patch...";
-                zip.ExtractProgress += new EventHandler<ExtractProgressEventArgs>(ZipExtractProgress);
-                await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+                // Make sure to extract patch files only if necessary
+                var alreadyExtractedFiles = Directory.GetFiles(extractionFolder, "*.*", SearchOption.AllDirectories);
+                var alreadyExtractedFolders = Directory.GetDirectories(extractionFolder, "*.*", SearchOption.AllDirectories);
+
+                if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
+                {
+                    PatchProgressionMessage.Text = $"Extraction des fichiers du patch...";
+                    zip.ExtractProgress += new EventHandler<ExtractProgressEventArgs>(ZipExtractProgress);
+                    await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+                }
             }
         }
 
