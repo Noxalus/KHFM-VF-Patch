@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ionic.Zip;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -194,6 +195,7 @@ namespace KHFM_VF_Patch
         {
             Debug.WriteLine("Patch the game!!!");
 
+            await ExtractPatch();
             await BeforePatch(gameFolder);
 
             var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHES_FILES_FOLDER_NAME);
@@ -210,15 +212,6 @@ namespace KHFM_VF_Patch
                 PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
 
                 Patcher.Patch(pkgFile, patchFolder, patchedPKGFile);
-
-                var patchProcess = new Process();
-                patchProcess.StartInfo.FileName = $@"{TOOLS_PATH}/Patcher/OpenKh.Command.IdxImg.exe";
-                patchProcess.StartInfo.Arguments = $"hed patch {pkgFile} {patchFolder} --output {patchedPKGFile}";
-                //patchProcess.StartInfo.UseShellExecute = false;
-                //patchProcess.StartInfo.RedirectStandardInput = false;
-                //patchProcess.StartInfo.RedirectStandardOutput = true;
-                patchProcess.Start();
-                patchProcess.WaitForExit();
             }
         }
 
@@ -270,6 +263,31 @@ namespace KHFM_VF_Patch
 
                     await CopyToAsync(source, destination, progress, default, 0x100000);
                 }
+            }
+        }
+
+        private async Task ExtractPatch()
+        {
+            var patchFile = Path.Combine(PATCH_FOLDER, "KH1FM-Patch.zip");
+            var extractionFolder = Path.Combine(PATCH_FOLDER, "KH1FM - Patch");
+
+            if (!Directory.Exists(extractionFolder))
+                Directory.CreateDirectory(extractionFolder);
+            
+
+            using (ZipFile zip = ZipFile.Read(patchFile))
+            {
+                PatchProgressionMessage.Text = $"Extraction des fichiers du patch...";
+                zip.ExtractProgress += new EventHandler<ExtractProgressEventArgs>(ZipExtractProgress);
+                await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+            }
+        }
+
+        void ZipExtractProgress(object sender, ExtractProgressEventArgs e)
+        {
+            if (e.EntriesTotal > 0)
+            {
+                PatchState = Convert.ToInt32(100 * ((float)e.EntriesExtracted / e.EntriesTotal));
             }
         }
 
