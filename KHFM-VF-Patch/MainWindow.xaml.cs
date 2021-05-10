@@ -23,8 +23,12 @@ namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        private static readonly string TOOLS_PATH = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "tools");
+        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "patch");
+
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
-        private const string SAVE_FOLDER_NAME = "Saves";
+        private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
+        private const string PATCHES_FILES_FOLDER_NAME = "VFPatch/Patch";
         private static readonly List<string> REQUIRED_FILES = new List<string>()
         {
             "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
@@ -190,6 +194,34 @@ namespace KHFM_VF_Patch
         {
             Debug.WriteLine("Patch the game!!!");
 
+            await BeforePatch(gameFolder);
+
+            var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHES_FILES_FOLDER_NAME);
+
+            if (!Directory.Exists(patchedFilesBaseFolder))
+                Directory.CreateDirectory(patchedFilesBaseFolder);
+
+            foreach (var requiredFile in REQUIRED_FILES)
+            {
+                var pkgFile = requiredFile;
+                var patchFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(pkgFile));
+                var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
+
+                PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
+
+                var patchProcess = new Process();
+                patchProcess.StartInfo.FileName = $@"{TOOLS_PATH}/Patcher/OpenKh.Command.IdxImg.exe";
+                patchProcess.StartInfo.Arguments = $"hed patch {pkgFile} {patchFolder} --output {patchedPKGFile}";
+                //patchProcess.StartInfo.UseShellExecute = false;
+                //patchProcess.StartInfo.RedirectStandardInput = false;
+                //patchProcess.StartInfo.RedirectStandardOutput = true;
+                patchProcess.Start();
+                patchProcess.WaitForExit();
+            }
+        }
+
+        private async Task BeforePatch(string gameFolder)
+        {
             // Save the original files
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
 
@@ -257,7 +289,7 @@ namespace KHFM_VF_Patch
                     progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
