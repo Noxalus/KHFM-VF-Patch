@@ -209,6 +209,8 @@ namespace KHFM_VF_Patch
 
                 PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
 
+                Patcher.Patch(pkgFile, patchFolder, patchedPKGFile);
+
                 var patchProcess = new Process();
                 patchProcess.StartInfo.FileName = $@"{TOOLS_PATH}/Patcher/OpenKh.Command.IdxImg.exe";
                 patchProcess.StartInfo.Arguments = $"hed patch {pkgFile} {patchFolder} --output {patchedPKGFile}";
