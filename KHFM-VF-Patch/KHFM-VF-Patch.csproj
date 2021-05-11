@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="patch\KH1FM-Patch.zip">
+    <None Update="patch\KH1FM-VF.patch">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="resources\kh1.txt">
