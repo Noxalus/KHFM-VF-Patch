@@ -27,7 +27,7 @@ namespace KHFM_VF_Patch
         private static readonly string TOOLS_PATH = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "tools");
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "patch");
 
-        private const string KH1_PATCH_ZIP_NAME = "KH1FM-Patch";
+        private const string KH1_PATCH_ZIP_NAME = "KH1FM-VF.patch";
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "VFPatch/Patch";
@@ -91,6 +91,8 @@ namespace KHFM_VF_Patch
 
         private void ReadyToPatchState()
         {
+            // TODO(bth): Show a button to unpatch the game
+
             if (CheckRemainingSpace(_selectedGameFolder))
             {
                 GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
@@ -196,34 +198,61 @@ namespace KHFM_VF_Patch
         {
             Debug.WriteLine("Patch the game!!!");
 
-            await ExtractPatch();
-            await BeforePatch(gameFolder);
-
-            var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
-
-            if (Directory.Exists(patchedFilesBaseFolder))
-                Directory.Delete(patchedFilesBaseFolder, true);
-
-            Directory.CreateDirectory(patchedFilesBaseFolder);
-
-            foreach (var requiredFile in REQUIRED_FILES)
+            try
             {
-                var pkgFile = Path.Combine(gameFolder, requiredFile);
-                var patchFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_ZIP_NAME, Path.GetFileNameWithoutExtension(pkgFile));
-                var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
+                await ExtractPatch();
+                var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
 
-                PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
+                if (Directory.Exists(patchedFilesBaseFolder))
+                    Directory.Delete(patchedFilesBaseFolder, true);
 
-                try
+                Directory.CreateDirectory(patchedFilesBaseFolder);
+
+                foreach (var requiredFile in REQUIRED_FILES)
                 {
+                    await SaveOrRestore(gameFolder, requiredFile);
+
+                    if (Path.GetExtension(requiredFile) != ".pkg")
+                        continue;
+
+                    var pkgFile = Path.Combine(gameFolder, requiredFile);
+                    var patchFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME), Path.GetFileNameWithoutExtension(pkgFile));
+                    var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
+
+                    PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
+
                     Patcher.PatchProgress += PatchProgress;
-                    await Task.Run(() => Patcher.Patch(pkgFile, patchFolder, patchedPKGFile));
+                    await Task.Run(() => Patcher.Patch(pkgFile, patchFolder, patchedFilesBaseFolder));
+
+                    // Copy patched PKG to the right location
+                    var progress = new Progress<List<object>>(value =>
+                    {
+                        var copiedSize = (long)value[0];
+                        var totalFileSize = (long)value[1];
+                        var filename = (string)value[2];
+
+                        var progress = ((double)copiedSize / totalFileSize) * 100;
+
+                        PatchState = (float)progress;
+                        Debug.WriteLine("{1} {0:N2}%", progress, filename);
+                    });
+
+                    PatchProgressionMessage.Text = $"Copie du PKG patché ({Path.GetFileName(pkgFile)}) dans le dossier du jeu...";
+
+                    await CopyToAsync(patchedPKGFile, pkgFile, progress, default, 0x1000000);
+                    await CopyToAsync(Path.ChangeExtension(patchedPKGFile, ".hed"), Path.ChangeExtension(pkgFile, ".hed"), progress, default, 0x1000000);
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
+
+                PatchProgressionMessage.Text = $"Votre jeu a correctement été patché ! Bonne partie ;)";
             }
+            catch (Exception e)
+            {
+                PatchProgressionMessage.Foreground = Brushes.Red;
+                PatchProgressionMessage.Text = $"Une erreur s'est produite: {e.Message}";
+
+                Debug.WriteLine(e.Message);
+            }
+
         }
 
         private void PatchProgress(object sender, PatchProgressEventArgs e)
@@ -234,10 +263,12 @@ namespace KHFM_VF_Patch
             }
         }
 
-        private async Task BeforePatch(string gameFolder)
+        // fileToSaveOrRestore folder should be relative to game folder
+        private async Task SaveOrRestore(string gameFolder, string fileToSaveOrRestore)
         {
             // Save the original files
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
+            var savedFileCompletePath = Path.Combine(saveFolder, fileToSaveOrRestore);
 
             var progress = new Progress<List<object>>(value =>
             {
@@ -251,48 +282,41 @@ namespace KHFM_VF_Patch
                 Debug.WriteLine("{1} {0:N2}%", progress, filename);
             });
 
-            if (!Directory.Exists(saveFolder))
-            {
-                PatchProgressionMessage.Text = "Sauvegarde des fichiers originaux...";
+            string source;
+            string destination;
+            var filename = Path.GetFileName(fileToSaveOrRestore);
 
+            if (!File.Exists(savedFileCompletePath))
+            {
                 Directory.CreateDirectory(saveFolder);
 
-                foreach (var requiredFile in REQUIRED_FILES)
-                {
-                    var source = Path.Combine(gameFolder, requiredFile);
-                    var destination = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
-                    var filename = source;
+                source = Path.Combine(gameFolder, fileToSaveOrRestore);
+                destination = Path.Combine(saveFolder, filename);
 
-                    PatchProgressionMessage.Text = $"Sauvegarde de {source}";
+                PatchProgressionMessage.Text = $"Sauvegarde du fichier {filename} original...";
 
-                    await CopyToAsync(source, destination, progress, default, 0x100000);
-                }
+                await CopyToAsync(source, destination, progress, default, 0x100000);
             }
             else
             {
-                // TODO(bth): Show a button to unpatch the game
-
                 // Copy saved files in the original folder back, to make sure we patch the original files
-                foreach (var requiredFile in REQUIRED_FILES)
-                {
-                    var source = Path.Combine(saveFolder, Path.GetFileName(requiredFile));
-                    var destination = Path.Combine(gameFolder, requiredFile);
+                source = Path.Combine(saveFolder, filename);
+                destination = Path.Combine(gameFolder, fileToSaveOrRestore);
 
-                    PatchProgressionMessage.Text = $"Restauration de {destination}";
+                PatchProgressionMessage.Text = $"Restauration de {destination}";
 
-                    await CopyToAsync(source, destination, progress, default, 0x100000);
-                }
             }
+
+            await CopyToAsync(source, destination, progress, default, 0x100000);
         }
 
         private async Task ExtractPatch()
         {
-            var patchFile = Path.Combine(PATCH_FOLDER, $"{KH1_PATCH_ZIP_NAME}.zip");
-            var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_ZIP_NAME);
+            var patchFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_ZIP_NAME);
+            var extractionFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME));
 
             if (!Directory.Exists(extractionFolder))
                 Directory.CreateDirectory(extractionFolder);
-            
 
             using (ZipFile zip = ZipFile.Read(patchFile))
             {
