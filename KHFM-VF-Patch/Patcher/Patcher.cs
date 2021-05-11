@@ -15,6 +15,7 @@ namespace KHFM_VF_Patch
     {
         public int EntriesTotal { get; set; }
         public int EntriesPatched { get; set; }
+        public string LastReplacedFile { get; set; }
     }
 
     public static class Patcher
@@ -38,12 +39,10 @@ namespace KHFM_VF_Patch
                 Console.WriteLine($"Unable to find folder {originalFilesFolder}, please make sure files to packs are there.");
             }
 
-            inputFolder = originalFilesFolder;
-
             var outputDir = outputFolder ?? Path.GetFileNameWithoutExtension(pkgFile);
 
             // Get files to inject in the PKG
-            var inputFiles = GetAllFiles(inputFolder).ToList();
+            var inputFiles = GetAllFiles(originalFilesFolder).ToList();
 
             var hedFile = Path.ChangeExtension(pkgFile, "hed");
             using var hedStream = File.OpenRead(hedFile);
@@ -83,11 +82,13 @@ namespace KHFM_VF_Patch
                     inputFiles.Remove(filename);
 
                     var asset = new Asset(pkgStream.SetPosition(entry.Offset), entry);
-                    var fileToInject = Path.Combine(inputFolder, filename);
+                    var fileToInject = Path.Combine(originalFilesFolder, filename);
                     var shouldCompressData = asset.OriginalAssetHeader.CompressedLength > 0;
                     var newHedEntry = ReplaceFile(inputFolder, fileToInject, patchedHedStream, patchedPkgStream, asset, shouldCompressData, entry);
 
                     Debug.WriteLine($"Replaced file: {filename}");
+
+                    eventArgs.LastReplacedFile = filename;
 
                     //Console.WriteLine("HED");
                     //Console.WriteLine($"ActualLength: {entry.ActualLength} | {newHedEntry.ActualLength}");
@@ -228,7 +229,7 @@ namespace KHFM_VF_Patch
 
                 if (!File.Exists(assetFilePath))
                 {
-                    assetData = asset.ReadRemasteredAsset(remasteredAssetFile);
+                    assetData = asset.RemasteredAssetsData[remasteredAssetFile];
                 }
                 else
                 {
@@ -237,6 +238,12 @@ namespace KHFM_VF_Patch
                 }
 
                 var compressedData = asset.RemasteredAssetHeaders[remasteredAssetFile].CompressedLength < 0 ? assetData : CompressData(assetData);
+
+                if (asset.RemasteredAssetHeaders[remasteredAssetFile].CompressedLength == -2)
+                {
+                    compressedData = Encryption.Encrypt(compressedData, seed);
+                }
+
                 var currentOffset = (int)(pkgStream.Position + totalRemasteredAssetHeadersSize + allRemasteredAssetsData.Position + compressedData.Length);
 
                 var remasteredEntry = new Asset.RemasteredEntry()
