@@ -44,10 +44,14 @@ namespace KHFM_VF_Patch
         private readonly long _dataOffset;
         private readonly Dictionary<string, RemasteredEntry> _entries;
         private readonly Hed.Entry _hedEntry;
+        private byte[] _originalData;
+        private readonly Dictionary<string, byte[]>  _remasteredAssetsData = new Dictionary<string, byte[]>();
 
         public string[] Assets { get; }
         public Header OriginalAssetHeader => _header;
         public Dictionary<string, RemasteredEntry> RemasteredAssetHeaders => _entries;
+        public byte[] OriginalData => _originalData;
+        public Dictionary<string, byte[]> RemasteredAssetsData => _remasteredAssetsData;
 
         public Asset(Stream stream, Hed.Entry hedEntry)
         {
@@ -69,6 +73,15 @@ namespace KHFM_VF_Patch
             _dataOffset = stream.Position;
 
             Assets = entries.Select(x => x.Name).ToArray();
+
+            ReadData();
+
+            foreach (var remasteredAssetName in Assets)
+            {
+                ReadRemasteredAsset(remasteredAssetName);
+            }
+
+            stream.SetPosition(_dataOffset);
         }
 
         public byte[] ReadRemasteredAsset(string assetName)
@@ -92,8 +105,10 @@ namespace KHFM_VF_Patch
                 var decompressedData = new byte[header.DecompressedLength];
                 deflate.Read(decompressedData);
 
-                return decompressedData;
+                data = decompressedData;
             }
+
+            _remasteredAssetsData.Add(assetName, data);
 
             return data;
         }
@@ -117,8 +132,10 @@ namespace KHFM_VF_Patch
                 var decompressedData = new byte[_header.DecompressedLength];
                 deflate.Read(decompressedData);
 
-                return decompressedData;
+                data = decompressedData;
             }
+
+            _originalData = data;
 
             return data;
         }
