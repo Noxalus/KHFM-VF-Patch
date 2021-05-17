@@ -27,6 +27,7 @@ namespace KHFM_VF_Patch
         private static readonly string TOOLS_PATH = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "tools");
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "patch");
 
+        private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         private const string KH1_PATCH_ZIP_NAME = "KH1FM-VF.patch";
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
@@ -77,6 +78,8 @@ namespace KHFM_VF_Patch
                 //    "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. " +
                 //    "Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu sur votre machine.";
             }
+
+            //FinishedState();
         }
 
         private void SearchGameFolderState()
@@ -87,6 +90,7 @@ namespace KHFM_VF_Patch
             GameFoundMessage.Visibility = Visibility.Collapsed;
             PatchProgressionMessage.Visibility = Visibility.Collapsed;
             PatchProgressBar.Visibility = Visibility.Collapsed;
+            Credits.Visibility = Visibility.Collapsed;
         }
 
         private void ReadyToPatchState()
@@ -99,6 +103,7 @@ namespace KHFM_VF_Patch
                 BrowseButton.Visibility = Visibility.Collapsed;
                 PatchButton.Visibility = Visibility.Visible;
                 GameFoundMessage.Visibility = Visibility.Visible;
+                Credits.Visibility = Visibility.Collapsed;
             }
             else
             {
@@ -116,12 +121,18 @@ namespace KHFM_VF_Patch
             PatchProgressionMessage.Visibility = Visibility.Visible;
             PatchProgressBar.Visibility = Visibility.Visible;
             PatchButton.Visibility = Visibility.Collapsed;
+            Credits.Visibility = Visibility.Collapsed;
         }
 
         private void FinishedState()
         {
+            PatchProgressionMessage.Text = $"Votre jeu a correctement été patché ! Profitez bien des voix françaises ;)";
+
             PatchProgressionMessage.Visibility = Visibility.Visible;
             PatchProgressBar.Visibility = Visibility.Collapsed;
+            Credits.Visibility = Visibility.Visible;
+            ImageHeight.Height = new GridLength(100);
+            BrowseButton.Visibility = Visibility.Collapsed;
         }
 
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
@@ -249,8 +260,6 @@ namespace KHFM_VF_Patch
                     await CopyToAsync(Path.ChangeExtension(patchedPKGFile, ".hed"), Path.ChangeExtension(pkgFile, ".hed"), progress, default, 0x1000000);
                 }
 
-                PatchProgressionMessage.Text = $"Votre jeu a correctement été patché ! Bonne partie ;)";
-
                 FinishedState();
             }
             catch (Exception e)
@@ -370,6 +379,30 @@ namespace KHFM_VF_Patch
             {
                 Debug.WriteLine(ex.Message);
             }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            OpenURL(e.Uri.AbsoluteUri);
+            e.Handled = true;
+        }
+
+        private void OnDonateClick(object sender, MouseButtonEventArgs e)
+        {
+            OpenURL(DONATE_URL);
+            e.Handled = true;
+        }
+
+        private void OpenURL(string url)
+        {
+            // for .NET Core you need to add UseShellExecute = true
+            // see https://docs.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.useshellexecute#property-value
+            var process = new ProcessStartInfo(url)
+            {
+                UseShellExecute = true
+            };
+
+            Process.Start(process);
         }
     }
 }

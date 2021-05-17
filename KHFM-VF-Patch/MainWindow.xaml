@@ -7,21 +7,21 @@
         mc:Ignorable="d"
         Title="Kingdom Hearts Final Mix - Patch VF" Height="450" Width="800"
         ResizeMode="NoResize">
-    <Grid Margin="20">
+    <Grid Margin="20, 0, 20, 20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="250" />
+            <RowDefinition x:Name="ImageHeight" Height="250" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="resources/logo.png" RenderTransformOrigin="0.5,0.5">
+        <Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="resources/logo.png" RenderTransformOrigin="0.5,0">
             <Image.RenderTransform>
                 <TransformGroup>
-                    <ScaleTransform ScaleX="2" ScaleY="2"/>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
                     <SkewTransform/>
                     <RotateTransform/>
                     <TranslateTransform/>
@@ -30,10 +30,62 @@
         </Image>
 
         <TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FFFF0505"><Italic>Le dossier jeu n'a pas été trouvé.</Italic></TextBlock>
-        <TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>
+        <TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct et est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>
         <TextBlock x:Name="PatchProgressionMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" Foreground="#FF56BF5F">[Progression du patch]</TextBlock>
         <ProgressBar x:Name="PatchProgressBar"  Grid.Column="0" Grid.Row="2" Minimum="0" Maximum="100" Height="42" Value="{Binding PatchState}" Visibility="Visible" />
         <Button Grid.Column="0" Grid.Row="3" x:Name="BrowseButton" Width="450" Height="50" Content="Chercher le dossier du jeu" Click="BrowsFolderButtonClick" Visibility="Visible"/>
         <Button Grid.Column="0" Grid.Row="3" x:Name="PatchButton" Width="450" Height="50" Content="Patcher le jeu" Click="PatchGameButtonClick" Visibility="Collapsed" />
+        <TextBlock x:Name="Credits" Grid.Column="0" Grid.Row="2" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black"> 
+            <TextBlock FontSize="15" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black">Crédits</TextBlock>
+            <LineBreak />           
+            Ce patch a été rendu possible grâce aux travaux effectués par l'équipe de
+            <Bold>
+                <Hyperlink NavigateUri="https://github.com/Xeeynamo/OpenKh" RequestNavigate="Hyperlink_RequestNavigate">
+                    OpenKH
+                </Hyperlink>
+            </Bold> et sa communauté. <LineBreak />
+            Mais également grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/Fotia_13" RequestNavigate="Hyperlink_RequestNavigate">
+                    Fotia
+                </Hyperlink>
+            </Bold>: qui s'est occupé de corriger l'ordre des voix pendant les combats et du logo<LineBreak />
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/Noxyan88" RequestNavigate="Hyperlink_RequestNavigate">
+                    NOXYAN
+                </Hyperlink>
+            </Bold>: qui s'est occupé de remplacer les voix sur les vidéos pré-rendues<LineBreak />
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/PurpleHato" RequestNavigate="Hyperlink_RequestNavigate">
+                    Purple Hato
+                </Hyperlink>
+            </Bold>: qui s'est occupé de corriger certains anglicismes visuels<LineBreak />
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/TieuLink" RequestNavigate="Hyperlink_RequestNavigate">
+                    TieuLink
+                </Hyperlink>
+            </Bold> et 
+            <Bold>
+                <Hyperlink NavigateUri="https://www.youtube.com/channel/UCR5O00P0r9BbKWb7X-Gfe-w" RequestNavigate="Hyperlink_RequestNavigate">
+                    Napstio
+                </Hyperlink>
+            </Bold>: pour leurs connaissances sur les fichiers du jeu et leurs tests qui ont permis de déceler les problèmes<LineBreak />
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/AntonioDePau" RequestNavigate="Hyperlink_RequestNavigate">
+                    AntonioDePau
+                </Hyperlink>
+            </Bold>: pour avoir corrigé les problèmes de l'outil permettant de patcher les fichiers du jeu<LineBreak />
+            <LineBreak />  
+            De mon côté (<Bold><Hyperlink NavigateUri="https://twitter.com/Noxalus" RequestNavigate="Hyperlink_RequestNavigate">Noxalus</Hyperlink></Bold>) j'ai initié ce projet 2 semaines avant 
+            la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.<LineBreak />
+            Si vous appréciez mon travail, vous pouvez toujours me remercier en m'offrant une pizza ! :p
+            <LineBreak />  
+            <LineBreak />  
+            <InlineUIContainer>
+                    <Image Source="resources/donate.png" Height="50" MouseDown="OnDonateClick"></Image>
+            </InlineUIContainer>
+            <LineBreak />  
+            <LineBreak /> 
+        </TextBlock>
     </Grid>
 </Window>

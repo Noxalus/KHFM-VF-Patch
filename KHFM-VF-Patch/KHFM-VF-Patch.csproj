@@ -19,6 +19,10 @@
 
   <ItemGroup>
     <None Remove="resources\logo.png" />
+    <None Remove="resources\donate.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="resources\logo.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -31,6 +35,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="resources\donate.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
