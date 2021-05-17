@@ -67,3 +67,5 @@
 *.mdls filter=lfs diff=lfs merge=lfs -text
 *.vset filter=lfs diff=lfs merge=lfs -text
 *.dat filter=lfs diff=lfs merge=lfs -text
+
+*.patch filter=lfs diff=lfs merge=lfs -text
