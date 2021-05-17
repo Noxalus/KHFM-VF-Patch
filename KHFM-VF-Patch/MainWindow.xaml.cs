@@ -176,12 +176,6 @@ namespace KHFM_VF_Patch
         {
             var directoryName = Path.GetFileName(folder);
 
-            // Check directory name
-            //if (directoryName != "KH_1.5_2.5")
-            //{
-            //    return false;
-            //}
-
             // Check PKG/HED files
             foreach (var requiredFile in REQUIRED_FILES)
             {
@@ -236,7 +230,7 @@ namespace KHFM_VF_Patch
                     var patchFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME), Path.GetFileNameWithoutExtension(pkgFile));
                     var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
 
-                    PatchProgressionMessage.Text = $"Modification de {pkgFile}...";
+                    PatchProgressionMessage.Text = $"Modification de {Path.GetFileName(pkgFile)}...";
 
                     Patcher.PatchProgress += PatchProgress;
                     await Task.Run(() => Patcher.Patch(pkgFile, patchFolder, patchedFilesBaseFolder));
@@ -254,10 +248,16 @@ namespace KHFM_VF_Patch
                         Debug.WriteLine("{1} {0:N2}%", progress, filename);
                     });
 
-                    PatchProgressionMessage.Text = $"Copie du PKG patché ({Path.GetFileName(pkgFile)}) dans le dossier du jeu...";
+                    var patchedHEDFile = Path.ChangeExtension(patchedPKGFile, ".hed");
+                    var originalHEDFile = Path.ChangeExtension(pkgFile, ".hed");
 
+                    PatchProgressionMessage.Text = $"Copie du fichier ({Path.GetFileName(patchedHEDFile)}) patché dans le dossier du jeu...";
+
+                    await CopyToAsync(patchedHEDFile, originalHEDFile, progress, default);
+                    
+                    PatchProgressionMessage.Text = $"Copie du fichier ({Path.GetFileName(patchedPKGFile)}) patché dans le dossier du jeu...";
+                    
                     await CopyToAsync(patchedPKGFile, pkgFile, progress, default, 0x1000000);
-                    await CopyToAsync(Path.ChangeExtension(patchedPKGFile, ".hed"), Path.ChangeExtension(pkgFile, ".hed"), progress, default, 0x1000000);
                 }
 
                 FinishedState();
@@ -284,7 +284,8 @@ namespace KHFM_VF_Patch
         {
             // Save the original files
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
-            var savedFileCompletePath = Path.Combine(saveFolder, fileToSaveOrRestore);
+            var filename = Path.GetFileName(fileToSaveOrRestore);
+            var savedFileCompletePath = Path.Combine(saveFolder, filename);
 
             var progress = new Progress<List<object>>(value =>
             {
@@ -300,7 +301,6 @@ namespace KHFM_VF_Patch
 
             string source;
             string destination;
-            var filename = Path.GetFileName(fileToSaveOrRestore);
 
             if (!File.Exists(savedFileCompletePath))
             {
@@ -310,8 +310,6 @@ namespace KHFM_VF_Patch
                 destination = Path.Combine(saveFolder, filename);
 
                 PatchProgressionMessage.Text = $"Sauvegarde du fichier {filename} original...";
-
-                await CopyToAsync(source, destination, progress, default, 0x100000);
             }
             else
             {
@@ -319,9 +317,13 @@ namespace KHFM_VF_Patch
                 source = Path.Combine(saveFolder, filename);
                 destination = Path.Combine(gameFolder, fileToSaveOrRestore);
 
-                PatchProgressionMessage.Text = $"Restauration de {destination}";
+                PatchProgressionMessage.Text = $"Restauration de {filename}";
+            }   
 
-            }
+            // Make sure to handle HED files
+            var hedSource = Path.ChangeExtension(source, ".hed");
+            var hedDestination = Path.ChangeExtension(destination, ".hed");
+            await CopyToAsync(hedSource, hedDestination, progress, default);
 
             await CopyToAsync(source, destination, progress, default, 0x100000);
         }
@@ -374,6 +376,9 @@ namespace KHFM_VF_Patch
                     totalRead += bytesRead;
                     progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
                 }
+
+                sourceStream.Close();
+                destinationStream.Close();
             }
             catch (Exception ex)
             {
