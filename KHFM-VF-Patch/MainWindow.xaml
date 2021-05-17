@@ -18,7 +18,16 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="resources/logo.png"/>
+        <Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="resources/logo.png" RenderTransformOrigin="0.5,0.5">
+            <Image.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform ScaleX="2" ScaleY="2"/>
+                    <SkewTransform/>
+                    <RotateTransform/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Image.RenderTransform>
+        </Image>
 
         <TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FFFF0505"><Italic>Le dossier jeu n'a pas été trouvé.</Italic></TextBlock>
         <TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>

@@ -118,6 +118,12 @@ namespace KHFM_VF_Patch
             PatchButton.Visibility = Visibility.Collapsed;
         }
 
+        private void FinishedState()
+        {
+            PatchProgressionMessage.Visibility = Visibility.Visible;
+            PatchProgressBar.Visibility = Visibility.Collapsed;
+        }
+
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
         {
             using (var dialog = new FolderBrowserDialog())
@@ -139,7 +145,7 @@ namespace KHFM_VF_Patch
 
                         GameNotFoundWarningMessage.Text =
                             "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
-                            "Il doit s'agir du dossier dans lequel l'Epic Game Store a téléchargé les fichiers du jeu, son nom est \"KH_1.5_2.5\".\n" +
+                            "Il doit s'agir du dossier dans lequel l'Epic Game Store a téléchargé les fichiers du jeu.\n" +
                             $"Le dossier que vous avez donné: ";
                         GameNotFoundWarningMessage.Inlines.Add(new Italic(new Run($"\"{dialog.SelectedPath}\"")));
 
@@ -160,10 +166,10 @@ namespace KHFM_VF_Patch
             var directoryName = Path.GetFileName(folder);
 
             // Check directory name
-            if (directoryName != "KH_1.5_2.5")
-            {
-                return false;
-            }
+            //if (directoryName != "KH_1.5_2.5")
+            //{
+            //    return false;
+            //}
 
             // Check PKG/HED files
             foreach (var requiredFile in REQUIRED_FILES)
@@ -244,6 +250,8 @@ namespace KHFM_VF_Patch
                 }
 
                 PatchProgressionMessage.Text = $"Votre jeu a correctement été patché ! Bonne partie ;)";
+
+                FinishedState();
             }
             catch (Exception e)
             {
@@ -252,7 +260,6 @@ namespace KHFM_VF_Patch
 
                 Debug.WriteLine(e.Message);
             }
-
         }
 
         private void PatchProgress(object sender, PatchProgressEventArgs e)
