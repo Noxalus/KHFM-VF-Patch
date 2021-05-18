@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Kingdom Hearts Final Mix - Patch VF" Height="450" Width="800"
         ResizeMode="NoResize">
-    <Grid Margin="20, 0, 20, 20">
+    <Grid Margin="20, 0, 20, 0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -43,7 +43,15 @@
                 <Hyperlink NavigateUri="https://github.com/Xeeynamo/OpenKh" RequestNavigate="Hyperlink_RequestNavigate">
                     OpenKH
                 </Hyperlink>
-            </Bold> et sa communauté. <LineBreak />
+            </Bold> et sa communauté. J'aimerais remercier tout particulièrement 
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/xeeynamo" RequestNavigate="Hyperlink_RequestNavigate">
+                    Xeeynamo
+                </Hyperlink>
+            </Bold> qui a écrit l'outil pour extraire les fichiers de la version PC.
+            <LineBreak />
+            <LineBreak />  
+            
             Mais également grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
             <Bold>
                 <Hyperlink NavigateUri="https://twitter.com/Fotia_13" RequestNavigate="Hyperlink_RequestNavigate">
@@ -63,6 +71,11 @@
             <Bold>
                 <Hyperlink NavigateUri="https://twitter.com/TieuLink" RequestNavigate="Hyperlink_RequestNavigate">
                     TieuLink
+                </Hyperlink>
+            </Bold>, 
+            <Bold>
+                <Hyperlink NavigateUri="https://twitter.com/xeronkar" RequestNavigate="Hyperlink_RequestNavigate">
+                    Xeronkar
                 </Hyperlink>
             </Bold> et 
             <Bold>

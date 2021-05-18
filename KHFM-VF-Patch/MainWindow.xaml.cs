@@ -131,7 +131,7 @@ namespace KHFM_VF_Patch
             PatchProgressionMessage.Visibility = Visibility.Visible;
             PatchProgressBar.Visibility = Visibility.Collapsed;
             Credits.Visibility = Visibility.Visible;
-            ImageHeight.Height = new GridLength(100);
+            ImageHeight.Height = new GridLength(75);
             BrowseButton.Visibility = Visibility.Collapsed;
         }
 
