@@ -42,7 +42,7 @@ namespace KHFM_VF_Patch
             var outputDir = outputFolder ?? Path.GetFileNameWithoutExtension(pkgFile);
 
             // Get files to inject in the PKG
-            var inputFiles = GetAllFiles(originalFilesFolder).ToList();
+            var inputFiles = Directory.Exists(originalFilesFolder) ? GetAllFiles(originalFilesFolder).ToList() : new List<string>();
 
             var hedFile = Path.ChangeExtension(pkgFile, "hed");
             using var hedStream = File.OpenRead(hedFile);

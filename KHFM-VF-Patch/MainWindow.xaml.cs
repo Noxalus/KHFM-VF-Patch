@@ -221,14 +221,14 @@ namespace KHFM_VF_Patch
 
                 foreach (var requiredFile in REQUIRED_FILES)
                 {
-                    await SaveOrRestore(gameFolder, requiredFile);
-
-                    if (Path.GetExtension(requiredFile) != ".pkg")
-                        continue;
-
                     var pkgFile = Path.Combine(gameFolder, requiredFile);
                     var patchFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME), Path.GetFileNameWithoutExtension(pkgFile));
                     var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
+
+                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
+                        continue;
+
+                    await SaveOrRestore(gameFolder, requiredFile);
 
                     PatchProgressionMessage.Text = $"Modification de {Path.GetFileName(pkgFile)}...";
 
