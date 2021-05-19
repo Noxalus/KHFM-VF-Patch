@@ -6,6 +6,8 @@ namespace KHFM_VF_Patch
 {
     public class Encryption
     {
+        private const int PASS_COUNT = 10;
+
         private static readonly byte[] MasterKey = new byte[]
         {
             0x7E, 0x88, 0x97, 0x55, 0x0B, 0x06, 0xF1, 0x08, 0xEB, 0xBB, 0x14, 0x1C, 0xD8, 0x7A, 0xEC, 0x41,
@@ -41,23 +43,21 @@ namespace KHFM_VF_Patch
 
         public static byte[] Decrypt(Stream stream)
         {
-            const int PassCount = 10;
-            var key = GenerateKey(stream.ReadBytes(0x10), PassCount);
+            var key = GenerateKey(stream.ReadBytes(0x10), PASS_COUNT);
             var data = stream.ReadBytes(0x100);
 
             for (var i = 0; i < 0x100; i += 0x10)
-                DecryptChunk(key, data, i, PassCount);
+                DecryptChunk(key, data, i, PASS_COUNT);
 
             return data;
         }
 
         public static byte[] Encrypt(byte[] data, byte[] seed)
         {
-            const int PassCount = 10;
-            var key = Encryption.GenerateKey(seed, PassCount);
+            var key = Encryption.GenerateKey(seed, PASS_COUNT);
 
             for (var i = 0; i < Math.Min(data.Length, 0x100); i += 0x10)
-                Encryption.EncryptChunk(key, data, i, PassCount);
+                Encryption.EncryptChunk(key, data, i, PASS_COUNT);
 
             return data;
         }

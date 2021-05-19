@@ -11,25 +11,29 @@ namespace KHFM_VF_Patch
     {
         public class Header
         {
+            // Original data's decompressed length
             [Data] public int DecompressedLength { get; set; }
             [Data] public int RemasteredAssetCount { get; set; }
+            // Original data's compressed length => -2: no compression and encryption, -1: no compression, > 0: compressed size
             [Data] public int CompressedLength { get; set; }
-            [Data] public int Unknown0c { get; set; }
+            [Data] public int CreationDate { get; set; }
         }
 
         public class RemasteredEntry
         {
             [Data(Count = 0x20)] public string Name { get; set; }
+            // The offiset is relative to: Original asset's header size + all remastered asset's header size + original asset's decompressed data length
             [Data] public int Offset { get; set; }
             [Data] public int Unknown24 { get; set; }
             [Data] public int DecompressedLength { get; set; }
             [Data] public int CompressedLength { get; set; }
         }
 
-        private const int PassCount = 10;
+        private const int PASS_COUNT = 10;
         private readonly Stream _stream;
         private readonly Header _header;
         private readonly byte[] _key;
+        private readonly byte[] _seed;
         private readonly long _baseOffset;
         private readonly long _dataOffset;
         private readonly Dictionary<string, RemasteredEntry> _entries;
@@ -44,6 +48,8 @@ namespace KHFM_VF_Patch
         public byte[] OriginalData => _originalData;
         public Dictionary<string, byte[]> RemasteredAssetsData => _remasteredAssetsData;
         public Dictionary<string, byte[]> RemasteredAssetsRawData => _remasteredAssetsRawData;
+        public byte[] Key => _key;
+        public byte[] Seed => _seed;
 
         public Asset(Stream stream, Hed.Entry hedEntry)
         {
@@ -51,10 +57,10 @@ namespace KHFM_VF_Patch
             _stream = stream;
             _baseOffset = stream.Position;
 
-            var seed = stream.ReadBytes(0x10);
-            _key = Encryption.GenerateKey(seed, PassCount);
+            _seed = stream.ReadBytes(0x10);
+            _key = Encryption.GenerateKey(_seed, PASS_COUNT);
 
-            _header = BinaryMapping.ReadObject<Header>(new MemoryStream(seed));
+            _header = BinaryMapping.ReadObject<Header>(new MemoryStream(_seed));
 
             var entries = Enumerable
                 .Range(0, _header.RemasteredAssetCount)
@@ -91,7 +97,7 @@ namespace KHFM_VF_Patch
             if (_header.CompressedLength > -2)
             {
                 for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
-                    Encryption.DecryptChunk(_key, data, i, PassCount);
+                    Encryption.DecryptChunk(_key, data, i, PASS_COUNT);
             }
 
             if (header.CompressedLength > -1)
@@ -118,7 +124,7 @@ namespace KHFM_VF_Patch
             if (_header.CompressedLength > -2)
             {
                 for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
-                    Encryption.DecryptChunk(_key, data, i, PassCount);
+                    Encryption.DecryptChunk(_key, data, i, PASS_COUNT);
             }
 
             if (_header.CompressedLength > -1)

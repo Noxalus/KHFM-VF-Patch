@@ -12,9 +12,13 @@ namespace KHFM_VF_Patch
     {
         public class Entry
         {
+            // Filename hash
             [Data(Count = 16)] public byte[] MD5 { get; set; }
+            // Offset of the header of the corresponding file in the PKG stream
             [Data] public long Offset { get; set; }
+            // Original asset's compressed data length + all remastered asset's compressed data length
             [Data] public int DataLength { get; set; }
+            // Original asset's decompressed data length
             [Data] public int ActualLength { get; set; }
         }
 

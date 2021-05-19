@@ -177,7 +177,7 @@ namespace KHFM_VF_Patch
                 newFileStream,
                 compressedDataLenght,
                 originalHeader.RemasteredAssetCount,
-                originalHeader.Unknown0c
+                originalHeader.CreationDate
             );
 
             BinaryMapping.WriteObject<Asset.Header>(pkgStream, header);
@@ -229,7 +229,13 @@ namespace KHFM_VF_Patch
             var allRemasteredAssetsData = new MemoryStream();
             // 0x30 is the size of this header
             var totalRemasteredAssetHeadersSize = asset.RemasteredAssetHeaders.Count() * 0x30;
-            var offsetPosition = asset.OriginalAssetHeader.DecompressedLength;
+            // This offset is relative to the original asset data
+            var offset = totalRemasteredAssetHeadersSize + 0x10 + asset.OriginalAssetHeader.DecompressedLength;
+
+            if (offset != asset.RemasteredAssetHeaders.Values.First().Offset)
+            {
+                throw new Exception("Something is wrong here!");
+            }
 
             foreach (var remasteredAssetHeader in asset.RemasteredAssetHeaders.Values)
             {
@@ -241,38 +247,27 @@ namespace KHFM_VF_Patch
                 if (File.Exists(assetFilePath))
                 {
                     Console.WriteLine($"Replacing remastered file: {relativePath}/{remasteredAssetFile}");
-
                     assetData = File.ReadAllBytes(assetFilePath);
-                    decompressedLength = assetData.Length;
-                    assetData = remasteredAssetHeader.CompressedLength > -1 ? CompressData(assetData) : assetData;
-                    assetData = remasteredAssetHeader.CompressedLength > -2 ? Encryption.Encrypt(assetData, seed) : assetData;
                 }
                 else
                 {
                     Console.WriteLine($"Keeping remastered file: {relativePath}/{remasteredAssetFile}");
-
-                    decompressedLength = asset.RemasteredAssetsData[remasteredAssetFile].Length;
-
-                    var rawData = asset.RemasteredAssetsRawData[remasteredAssetFile];
-
+                    //var rawData = asset.RemasteredAssetsRawData[remasteredAssetFile];
                     assetData = asset.RemasteredAssetsData[remasteredAssetFile];
-                    assetData = remasteredAssetHeader.CompressedLength > -1 ? CompressData(assetData) : assetData;
-                    assetData = remasteredAssetHeader.CompressedLength > -2 ? Encryption.Encrypt(assetData, seed) : assetData;
-
-                    // assetData and rawData should be equals, but it's not the case, why?
                 }
 
-                var compressedLength = remasteredAssetHeader.CompressedLength > -1 ? assetData.Length : remasteredAssetHeader.CompressedLength;
+                decompressedLength = assetData.Length;
+                assetData = remasteredAssetHeader.CompressedLength > -1 ? CompressData(assetData) : assetData;
+                assetData = remasteredAssetHeader.CompressedLength > -2 ? Encryption.Encrypt(assetData, seed) : assetData;
 
-                // This offset is relative to the original asset data
-                var currentOffset = offsetPosition + totalRemasteredAssetHeadersSize + 0x10;
+                var compressedLength = remasteredAssetHeader.CompressedLength > -1 ? assetData.Length : remasteredAssetHeader.CompressedLength;
 
                 var newRemasteredAssetHeader = new Asset.RemasteredEntry()
                 {
                     CompressedLength = compressedLength,
                     DecompressedLength = decompressedLength,
                     Name = remasteredAssetFile,
-                    Offset = currentOffset,
+                    Offset = offset,
                     Unknown24 = remasteredAssetHeader.Unknown24
                 };
 
@@ -285,7 +280,7 @@ namespace KHFM_VF_Patch
                 // all HD assets header juste after original file's data
                 allRemasteredAssetsData.Write(assetData);
 
-                offsetPosition += decompressedLength;
+                offset += decompressedLength;
             }
 
             pkgStream.Write(originalAssetData);
@@ -389,7 +384,7 @@ namespace KHFM_VF_Patch
                 CompressedLength = compressedDataLenght,
                 DecompressedLength = (int)fileStream.Length,
                 RemasteredAssetCount = remasteredAssetCount,
-                Unknown0c = unknown0c
+                CreationDate = unknown0c
             };
         }
 
