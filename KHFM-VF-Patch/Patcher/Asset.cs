@@ -36,12 +36,14 @@ namespace KHFM_VF_Patch
         private readonly Hed.Entry _hedEntry;
         private byte[] _originalData;
         private readonly Dictionary<string, byte[]>  _remasteredAssetsData = new Dictionary<string, byte[]>();
+        private readonly Dictionary<string, byte[]>  _remasteredAssetsRawData = new Dictionary<string, byte[]>();
 
         public string[] Assets { get; }
         public Header OriginalAssetHeader => _header;
         public Dictionary<string, RemasteredEntry> RemasteredAssetHeaders => _entries;
         public byte[] OriginalData => _originalData;
         public Dictionary<string, byte[]> RemasteredAssetsData => _remasteredAssetsData;
+        public Dictionary<string, byte[]> RemasteredAssetsRawData => _remasteredAssetsRawData;
 
         public Asset(Stream stream, Hed.Entry hedEntry)
         {
@@ -84,10 +86,15 @@ namespace KHFM_VF_Patch
 
             var data = _stream.AlignPosition(0x10).ReadBytes(dataLength);
 
-            for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
-                Encryption.DecryptChunk(_key, data, i, PassCount);
+            _remasteredAssetsRawData.Add(assetName, data);
 
-            if (header.CompressedLength >= 0)
+            if (_header.CompressedLength > -2)
+            {
+                for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
+                    Encryption.DecryptChunk(_key, data, i, PassCount);
+            }
+
+            if (header.CompressedLength > -1)
             {
                 using var compressedStream = new MemoryStream(data);
                 using var deflate = new DeflateStream(compressedStream.SetPosition(2), CompressionMode.Decompress);
@@ -108,13 +115,13 @@ namespace KHFM_VF_Patch
             var dataLength = _header.CompressedLength >= 0 ? _header.CompressedLength : _header.DecompressedLength;
             var data = _stream.SetPosition(_dataOffset).ReadBytes(dataLength);
 
-            if (_header.CompressedLength >= -1)
+            if (_header.CompressedLength > -2)
             {
                 for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
                     Encryption.DecryptChunk(_key, data, i, PassCount);
             }
 
-            if (_header.CompressedLength >= 0)
+            if (_header.CompressedLength > -1)
             {
                 using var compressedStream = new MemoryStream(data);
                 using var deflate = new DeflateStream(compressedStream.SetPosition(2), CompressionMode.Decompress);
