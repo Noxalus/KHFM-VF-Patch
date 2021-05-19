@@ -251,12 +251,12 @@ namespace KHFM_VF_Patch
                     var patchedHEDFile = Path.ChangeExtension(patchedPKGFile, ".hed");
                     var originalHEDFile = Path.ChangeExtension(pkgFile, ".hed");
 
-                    PatchProgressionMessage.Text = $"Copie du fichier ({Path.GetFileName(patchedHEDFile)}) patché dans le dossier du jeu...";
+                    PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(patchedHEDFile)} patché dans le dossier du jeu...";
 
                     await CopyToAsync(patchedHEDFile, originalHEDFile, progress, default);
-                    
-                    PatchProgressionMessage.Text = $"Copie du fichier ({Path.GetFileName(patchedPKGFile)}) patché dans le dossier du jeu...";
-                    
+
+                    PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(patchedPKGFile)} patché dans le dossier du jeu...";
+
                     await CopyToAsync(patchedPKGFile, pkgFile, progress, default, 0x1000000);
                 }
 
@@ -286,6 +286,7 @@ namespace KHFM_VF_Patch
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
             var filename = Path.GetFileName(fileToSaveOrRestore);
             var savedFileCompletePath = Path.Combine(saveFolder, filename);
+            var fileToSaveOrRestoreCompletePath = Path.Combine(gameFolder, fileToSaveOrRestore);
 
             var progress = new Progress<List<object>>(value =>
             {
@@ -306,19 +307,19 @@ namespace KHFM_VF_Patch
             {
                 Directory.CreateDirectory(saveFolder);
 
-                source = Path.Combine(gameFolder, fileToSaveOrRestore);
-                destination = Path.Combine(saveFolder, filename);
+                source = fileToSaveOrRestoreCompletePath;
+                destination = savedFileCompletePath;
 
                 PatchProgressionMessage.Text = $"Sauvegarde du fichier {filename} original...";
             }
             else
             {
                 // Copy saved files in the original folder back, to make sure we patch the original files
-                source = Path.Combine(saveFolder, filename);
-                destination = Path.Combine(gameFolder, fileToSaveOrRestore);
+                source = savedFileCompletePath;
+                destination = fileToSaveOrRestoreCompletePath;
 
-                PatchProgressionMessage.Text = $"Restauration de {filename}";
-            }   
+                PatchProgressionMessage.Text = $"Restauration de {filename}...";
+            }
 
             // Make sure to handle HED files
             var hedSource = Path.ChangeExtension(source, ".hed");
@@ -359,31 +360,24 @@ namespace KHFM_VF_Patch
             }
         }
 
-        public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
+        public async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
         {
-            try
-            {
-                var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-                var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-                var buffer = new byte[bufferSize];
-                int bytesRead;
-                long totalRead = 0;
+            var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var buffer = new byte[bufferSize];
+            int bytesRead;
+            long totalRead = 0;
 
-                while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
-                {
-                    await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    totalRead += bytesRead;
-                    progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
-                }
-
-                sourceStream.Close();
-                destinationStream.Close();
-            }
-            catch (Exception ex)
+            while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
-                Debug.WriteLine(ex.Message);
+                await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                totalRead += bytesRead;
+                progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
             }
+
+            sourceStream.Close();
+            destinationStream.Close();
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
