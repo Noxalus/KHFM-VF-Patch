@@ -1,4 +1,5 @@
-﻿<Window x:Class="KHFM_VF_Patch.MainWindow"
+﻿<Window x:Name="PatchWindow"
+        x:Class="KHFM_VF_Patch.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -29,6 +30,26 @@
             </Image.RenderTransform>
         </Image>
 
+        <StackPanel x:Name="PatchOptions" Grid.Column="0" Grid.Row="2">
+            <DockPanel>
+                <CheckBox x:Name="PatchTextureOption" Content="Appliquer les corrections graphiques." FontWeight="Bold" IsChecked="{Binding ElementName=PatchWindow, Path=PatchTextureOption}" />
+            </DockPanel>
+            <DockPanel Margin="20,0,0,0">
+                <TextBlock TextWrapping="Wrap" Width="450">Certaines éléments de l'interface sont restés en anglais. C'est le cas du titre "Magie" qui a été laissé en "Magic" par exemple. 
+                    Autre exemple, les mentions HP/MP/SP seront également remplacées respectivement par PV/PM/PC. En cochant cette option, ces changements seront effectués sur votre jeu.</TextBlock>
+                <Image Source="Resources/Images/TexturePatch.png" Height="100" HorizontalAlignment="Right" />
+            </DockPanel>
+            <DockPanel Margin="0,0,0,0">
+            </DockPanel>
+            <DockPanel>
+                <CheckBox x:Name="SaveOriginalFilesOption" Content="Sauvegarder les fichiers originaux" FontWeight="Bold" IsChecked="{Binding ElementName=PatchWindow, Path=SaveOriginalFilesOption}" />
+            </DockPanel>
+            <DockPanel Margin="20,0,0,0">
+                <TextBlock TextWrapping="Wrap">Ce patch va modifier la majorité des fichiers du jeu, il est donc fortement conseillé de sauvegarder les fichiers originaux pour pouvoir les réstituer en cas de problème. En cochant cette option, les fichiers impactés
+                seront automatiquement sauvegardés. Le problème est que cela nécessite d'avoir au moins 3 Go d'espace libre sur le disque où a été installé le jeu. Si vous n'avez pas assez d'espace, vous pouvez décocher cette option.</TextBlock>
+            </DockPanel>
+        </StackPanel>
+        
         <TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FFFF0505"><Italic>Le dossier jeu n'a pas été trouvé.</Italic></TextBlock>
         <TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct et est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>
         <TextBlock x:Name="PatchProgressionMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" Foreground="#FF56BF5F">[Progression du patch]</TextBlock>

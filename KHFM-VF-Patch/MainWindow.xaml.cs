@@ -27,7 +27,7 @@ namespace KHFM_VF_Patch
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
-        
+
         private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
         private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
@@ -35,7 +35,7 @@ namespace KHFM_VF_Patch
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
-        
+
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "Patch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
@@ -52,8 +52,6 @@ namespace KHFM_VF_Patch
         public event PropertyChangedEventHandler PropertyChanged;
         private float _patchState = 0f;
         private string _selectedGameFolder;
-        private bool _saveOriginalFiles = true;
-        private bool _shouldPatchTexture = true;
 
         public float PatchState
         {
@@ -67,6 +65,21 @@ namespace KHFM_VF_Patch
                 }
             }
         }
+
+        public bool ShouldPatchTexture
+        {
+            get { return (bool)GetValue(ShouldPatchTextureProperty); }
+            set { SetValue(ShouldPatchTextureProperty, value); }
+        }
+
+        public bool ShouldSaveOriginalFiles
+        {
+            get { return (bool)GetValue(ShouldSaveOriginalFilesProperty); }
+            set { SetValue(ShouldSaveOriginalFilesProperty, value); }
+        }
+
+        public static readonly DependencyProperty ShouldPatchTextureProperty = DependencyProperty.Register("PatchTextureOption", typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
+        public static readonly DependencyProperty ShouldSaveOriginalFilesProperty = DependencyProperty.Register("SaveOriginalFilesOption", typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
 
         public MainWindow()
         {
@@ -114,6 +127,7 @@ namespace KHFM_VF_Patch
             PatchProgressionMessage.Visibility = Visibility.Collapsed;
             PatchProgressBar.Visibility = Visibility.Collapsed;
             Credits.Visibility = Visibility.Collapsed;
+            PatchOptions.Visibility = Visibility.Collapsed;
         }
 
         private void ReadyToPatchState()
@@ -127,6 +141,8 @@ namespace KHFM_VF_Patch
                 PatchButton.Visibility = Visibility.Visible;
                 GameFoundMessage.Visibility = Visibility.Visible;
                 Credits.Visibility = Visibility.Collapsed;
+                PatchOptions.Visibility = Visibility.Visible;
+                ImageHeight.Height = new GridLength(75);
             }
             else
             {
@@ -145,6 +161,8 @@ namespace KHFM_VF_Patch
             PatchProgressBar.Visibility = Visibility.Visible;
             PatchButton.Visibility = Visibility.Collapsed;
             Credits.Visibility = Visibility.Collapsed;
+            PatchOptions.Visibility = Visibility.Collapsed;
+            ImageHeight.Height = new GridLength(250);
         }
 
         private void FinishedState()
@@ -156,6 +174,7 @@ namespace KHFM_VF_Patch
             Credits.Visibility = Visibility.Visible;
             ImageHeight.Height = new GridLength(75);
             BrowseButton.Visibility = Visibility.Collapsed;
+            PatchOptions.Visibility = Visibility.Collapsed;
         }
 
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
@@ -245,7 +264,7 @@ namespace KHFM_VF_Patch
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
 
-                if (_shouldPatchTexture)
+                if (ShouldPatchTexture)
                 {
                     await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME);
                 }
@@ -357,7 +376,7 @@ namespace KHFM_VF_Patch
         // fileToSaveOrRestore folder should be relative to game folder
         private async Task SaveOrRestore(string gameFolder, string fileToSaveOrRestore)
         {
-            if (!_saveOriginalFiles)
+            if (!ShouldSaveOriginalFiles)
             {
                 return;
             }

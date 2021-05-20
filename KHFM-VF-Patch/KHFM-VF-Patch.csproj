@@ -20,6 +20,7 @@
   <ItemGroup>
     <None Remove="Resources\Images\donate.png" />
     <None Remove="Resources\Images\logo.png" />
+    <None Remove="Resources\Images\TexturePatch.png" />
     <None Remove="Resources\logo.png" />
     <None Remove="Resources\donate.png" />
   </ItemGroup>
@@ -34,6 +35,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Images\logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Images\TexturePatch.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
