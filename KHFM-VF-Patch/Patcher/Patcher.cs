@@ -112,7 +112,6 @@ namespace KHFM_VF_Patch
             // Use the base original asset data by default
             var decompressedData = asset.OriginalData;
             var encryptedData = asset.OriginalRawData;
-            // TODO: It's different from fixed patcher (it uses the Key directly)
             var encryptionSeed = asset.Seed;
 
             // We want to replace the original file
@@ -146,19 +145,10 @@ namespace KHFM_VF_Patch
                 encryptedData = header.CompressedLength > -2 ? Encryption.Encrypt(compressedData, encryptionSeed) : compressedData;
             }
 
-            //if (header.CompressedLength != originalHeader.CompressedLength ||
-            //    header.DecompressedLength != originalHeader.DecompressedLength ||
-            //    header.RemasteredAssetCount != originalHeader.RemasteredAssetCount ||
-            //    header.CreationDate != originalHeader.CreationDate)
-            //{
-            //    throw new Exception("Something is wrong with the asset header");
-            //}
-
             // Write original file header
             BinaryMapping.WriteObject<Asset.Header>(pkgStream, header);
 
             var remasteredHeaders = new List<Asset.RemasteredEntry>();
-
 
             // Is there remastered assets?
             if (header.RemasteredAssetCount > 0)
@@ -191,22 +181,6 @@ namespace KHFM_VF_Patch
 
             BinaryMapping.WriteObject<Hed.Entry>(hedStream, hedHeader);
 
-            //Debug.WriteLine("Data header");
-            //Debug.WriteLine($"CompressedLength: {asset.OriginalAssetHeader.CompressedLength} | {header.CompressedLength}");
-            //Debug.WriteLine($"DecompressedLength: {asset.OriginalAssetHeader.DecompressedLength} | {header.DecompressedLength}");
-            //Debug.WriteLine($"RemasteredAssetCount: {asset.OriginalAssetHeader.RemasteredAssetCount} | {header.RemasteredAssetCount}");
-            //Debug.WriteLine($"Unknown0c: {asset.OriginalAssetHeader.Unknown0c} | {header.Unknown0c}");
-
-            //if (hedHeader.ActualLength != originalHedHeader.ActualLength ||
-            //    hedHeader.DataLength != originalHedHeader.DataLength ||
-            //    !hedHeader.MD5.SequenceEqual(originalHedHeader.MD5) ||
-            //    hedHeader.Offset != originalHedHeader.Offset)
-            //{
-            //    var diff = originalHedHeader.Offset - hedHeader.Offset;
-            //    Debug.WriteLine("Something is wrong with the HED header");
-            //    //throw new Exception("Something is wrong with the HED header");
-            //}
-
             return hedHeader;
         }
 
@@ -238,15 +212,15 @@ namespace KHFM_VF_Patch
 
                 if (File.Exists(assetFilePath))
                 {
-                    Console.WriteLine($"Replacing remastered file: {relativePath}/{filename}");
+                    Debug.WriteLine($"Replacing remastered file: {relativePath}/{filename}");
                     assetData = File.ReadAllBytes(assetFilePath);
                     decompressedLength = assetData.Length;
                     assetData = remasteredAssetHeader.CompressedLength > -1 ? CompressData(assetData) : assetData;
                     assetData = remasteredAssetHeader.CompressedLength > -2 ? Encryption.Encrypt(assetData, seed) : assetData;
                 }
-                //else
+                else
                 {
-                    Console.WriteLine($"Keeping remastered file: {relativePath}/{filename}");
+                    Debug.WriteLine($"Keeping remastered file: {relativePath}/{filename}");
 
                     // The original file have been replaced, we need to encrypt all remastered asset with the new key
                     if (!seed.SequenceEqual(asset.Seed))

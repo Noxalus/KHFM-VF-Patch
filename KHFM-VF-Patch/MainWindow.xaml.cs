@@ -28,7 +28,10 @@ namespace KHFM_VF_Patch
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         private const string KH1_PATCH_VF_ZIP_NAME = "KH1FM-VF.patch";
+        private const string KH1_PATCH_VIDEO_ZIP_NAME = "KH1FM-Video.patch";
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
+        private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
+        private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "VFPatch/Patch";
@@ -40,9 +43,12 @@ namespace KHFM_VF_Patch
             "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
         };
 
+        private Progress<List<object>> _progress;
+
         public event PropertyChangedEventHandler PropertyChanged;
         private float _patchState = 0f;
         private string _selectedGameFolder;
+        private bool _saveOriginalFiles = true;
 
         public float PatchState
         {
@@ -64,6 +70,18 @@ namespace KHFM_VF_Patch
             DataContext = this;
 
             SearchGameFolderState();
+
+            _progress = new Progress<List<object>>(value =>
+            {
+                var copiedSize = (long)value[0];
+                var totalFileSize = (long)value[1];
+                var filename = (string)value[2];
+
+                var progress = ((double)copiedSize / totalFileSize) * 100;
+
+                PatchState = (float)progress;
+                //Debug.WriteLine("{1} {0:N2}%", progress, filename);
+            });
 
             if (CheckGameFolder(DEFAULT_GAME_FOLDER))
             {
@@ -216,7 +234,10 @@ namespace KHFM_VF_Patch
                     Directory.Delete(patchesExtractionFolder, true);
                 //#endif
 
+                // Extract VF patch files
                 await ExtractPatch(KH1_PATCH_VF_ZIP_NAME);
+
+                //await PatchVideos();
 
                 // Create temporary folder to store patched files before to copy them in the actual game folder
                 var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
@@ -232,10 +253,15 @@ namespace KHFM_VF_Patch
                     var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
                     var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
 
-                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
+                    // TODO: REMOVE THIS
+                    if (!requiredFile.Contains("fifth"))
                         continue;
 
+                    // Make sure to execute this for HED files too
                     await SaveOrRestore(gameFolder, requiredFile);
+
+                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
+                        continue;
 
                     PatchProgressionMessage.Text = $"Modification de {Path.GetFileName(pkgFile)}...";
 
@@ -278,6 +304,38 @@ namespace KHFM_VF_Patch
             }
         }
 
+        private async Task PatchVideos()
+        {
+            // If found, extract video patch
+            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEO_ZIP_NAME)))
+            {
+                await ExtractPatch(KH1_PATCH_VIDEO_ZIP_NAME);
+
+                var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
+                var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
+                var gameVideosFolder = Path.Combine(_selectedGameFolder, @"EPIC\en\KH1Movie");
+                var originalOpeningVideoFile = Path.Combine(gameVideosFolder, KH1_OPENING_VIDEO_FILENAME);
+                var originalEndingVideoFile = Path.Combine(gameVideosFolder, KH1_ENDING_VIDEO_FILENAME);
+
+                if (!Directory.Exists(gameVideosFolder))
+                {
+                    throw new Exception($"Le dossier {gameVideosFolder} n'existe pas, il est pourtant nécessaire pour patcher les vidéos du jeu.");
+                }
+
+                // Save original files
+                await SaveOrRestore(_selectedGameFolder, originalOpeningVideoFile);
+                await SaveOrRestore(_selectedGameFolder, originalEndingVideoFile);
+
+                PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(openingVideoFile)} dans le dossier du jeu...";
+
+                await CopyToAsync(openingVideoFile, originalOpeningVideoFile, _progress);
+
+                PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(endingVideoFile)} dans le dossier du jeu...";
+
+                await CopyToAsync(endingVideoFile, originalEndingVideoFile, _progress);
+            }
+        }
+
         private void PatchProgress(object sender, PatchProgressEventArgs e)
         {
             if (e.EntriesTotal > 0)
@@ -289,23 +347,16 @@ namespace KHFM_VF_Patch
         // fileToSaveOrRestore folder should be relative to game folder
         private async Task SaveOrRestore(string gameFolder, string fileToSaveOrRestore)
         {
+            if (!_saveOriginalFiles)
+            {
+                return;
+            }
+
             // Save the original files
             var saveFolder = Path.Combine(gameFolder, SAVE_FOLDER_NAME);
             var filename = Path.GetFileName(fileToSaveOrRestore);
             var savedFileCompletePath = Path.Combine(saveFolder, filename);
             var fileToSaveOrRestoreCompletePath = Path.Combine(gameFolder, fileToSaveOrRestore);
-
-            var progress = new Progress<List<object>>(value =>
-            {
-                var copiedSize = (long)value[0];
-                var totalFileSize = (long)value[1];
-                var filename = (string)value[2];
-
-                var progress = ((double)copiedSize / totalFileSize) * 100;
-
-                PatchState = (float)progress;
-                //Debug.WriteLine("{1} {0:N2}%", progress, filename);
-            });
 
             string source;
             string destination;
@@ -328,17 +379,12 @@ namespace KHFM_VF_Patch
                 PatchProgressionMessage.Text = $"Restauration de {filename}...";
             }
 
-            // Make sure to handle HED files
-            var hedSource = Path.ChangeExtension(source, ".hed");
-            var hedDestination = Path.ChangeExtension(destination, ".hed");
-            await CopyToAsync(hedSource, hedDestination, progress, default);
-
-            await CopyToAsync(source, destination, progress, default, 0x100000);
+            await CopyToAsync(source, destination, _progress, default, 0x100000);
         }
 
         private async Task ExtractPatch(string patchName)
         {
-            var patchFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_VF_ZIP_NAME);
+            var patchFile = Path.Combine(PATCH_FOLDER, patchName);
             var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
 
             if (!Directory.Exists(extractionFolder))
@@ -352,7 +398,7 @@ namespace KHFM_VF_Patch
 
                 if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
                 {
-                    PatchProgressionMessage.Text = $"Extraction des fichiers du patch...";
+                    PatchProgressionMessage.Text = $"Extraction des fichiers de {patchName}...";
                     zip.ExtractProgress += new EventHandler<ExtractProgressEventArgs>(ZipExtractProgress);
                     await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
                 }
