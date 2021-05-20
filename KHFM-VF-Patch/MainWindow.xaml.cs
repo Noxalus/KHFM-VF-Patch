@@ -24,7 +24,7 @@ namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patch");
+        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         private const string KH1_PATCH_ZIP_NAME = "KH1FM-VF.patch";
