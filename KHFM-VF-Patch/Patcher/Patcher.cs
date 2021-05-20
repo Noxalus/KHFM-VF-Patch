@@ -147,47 +147,40 @@ namespace KHFM_VF_Patch
 
             // Use the base original asset data by default
             var decompressedData = asset.OriginalData;
-            var compressedData = asset.OriginalRawData;
             var encryptedData = asset.OriginalRawData;
             // TODO: It's different from fixed patcher (it uses the Key directly)
             var encryptionSeed = asset.Seed;
 
-            //if (header.CompressedLength == -2)
-            //{
-            //    throw new Exception("COUCOU");
-            //}
-
             // We want to replace the original file
-            //if (File.Exists(completeFilePath))
-            //{
-            //    Debug.WriteLine($"Replacing original: {filename}!");
+            if (File.Exists(completeFilePath))
+            {
+                Debug.WriteLine($"Replacing original: {filename}!");
 
-            //    using var newFileStream = File.OpenRead(completeFilePath);
-            //    decompressedData = newFileStream.ReadAllBytes();
-            //    compressedData = decompressedData;
-            //    var compressedDataLenght = originalHeader.CompressedLength;
+                using var newFileStream = File.OpenRead(completeFilePath);
+                decompressedData = newFileStream.ReadAllBytes();
+                
+                var compressedData = decompressedData.ToArray();
+                var compressedDataLenght = originalHeader.CompressedLength;
 
-            //    // CompressedLenght => -2: no compression and encryption, -1: no compression 
-            //    if (originalHeader.CompressedLength > -1)
-            //    {
-            //        compressedData = CompressData(decompressedData);
-            //        compressedDataLenght = compressedData.Length;
-            //    }
+                // CompressedLenght => -2: no compression and encryption, -1: no compression 
+                if (originalHeader.CompressedLength > -1)
+                {
+                    compressedData = CompressData(decompressedData);
+                    compressedDataLenght = compressedData.Length;
+                }
 
-            //    header.CompressedLength = compressedDataLenght;
-            //    header.DecompressedLength = decompressedData.Length;
+                header.CompressedLength = compressedDataLenght;
+                header.DecompressedLength = decompressedData.Length;
 
-            //    BinaryMapping.WriteObject<Asset.Header>(pkgStream, header);
+                // Encrypt and write current file data in the PKG stream
 
-            //    // Encrypt and write current file data in the PKG stream
+                // The seed used for encryption is the original data header
+                var seed = new MemoryStream();
+                BinaryMapping.WriteObject<Asset.Header>(seed, header);
 
-            //    // The seed used for encryption is the data header
-            //    var seed = new MemoryStream();
-            //    BinaryMapping.WriteObject<Asset.Header>(seed, header);
-
-            //    encryptionSeed = seed.ReadAllBytes();
-            //    encryptedData = header.CompressedLength > -2 ? Encryption.Encrypt(compressedData, encryptionSeed) : compressedData;
-            //}
+                encryptionSeed = seed.ReadAllBytes();
+                encryptedData = header.CompressedLength > -2 ? Encryption.Encrypt(compressedData, encryptionSeed) : compressedData;
+            }
 
             //if (header.CompressedLength != originalHeader.CompressedLength ||
             //    header.DecompressedLength != originalHeader.DecompressedLength ||
@@ -328,11 +321,6 @@ namespace KHFM_VF_Patch
                 // Don't write into the PKG stream yet as we need to write
                 // all HD assets header juste after original file's data
                 allRemasteredAssetsData.Write(assetData);
-
-                if (assetData.Length % 0x10 != 0)
-                {
-                    allRemasteredAssetsData.Write(Enumerable.Repeat((byte)0xCD, 16 - (assetData.Length % 0x10)).ToArray());
-                }
 
                 offset += decompressedLength;
             }
