@@ -28,8 +28,8 @@ namespace KHFM_VF_Patch
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         
-        private const string KH1_PATCH_VF_ZIP_NAME = "KH1FM-VF.patch";
-        private const string KH1_PATCH_VIDEO_ZIP_NAME = "KH1FM-Video.patch";
+        private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
+        private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
 
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
@@ -37,8 +37,8 @@ namespace KHFM_VF_Patch
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
         
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
-        private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
-        private const string PATCHED_FILES_FOLDER_NAME = "VFPatch/Patch";
+        private const string SAVE_FOLDER_NAME = "Patch/Saves";
+        private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
         private static readonly List<string> REQUIRED_FILES = new List<string>()
         {
             "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
@@ -240,10 +240,10 @@ namespace KHFM_VF_Patch
                 //#endif
 
                 // Extract VF patch files
-                await ExtractPatch(KH1_PATCH_VF_ZIP_NAME);
+                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
 
                 // Update videos if the corresponding patch is found
-                //await PatchVideos();
+                await PatchVideos();
 
                 if (_shouldPatchTexture)
                 {
@@ -301,6 +301,8 @@ namespace KHFM_VF_Patch
                     await CopyToAsync(patchedPKGFile, pkgFile, progress, default, 0x1000000);
                 }
 
+                Directory.Delete(patchedFilesBaseFolder, true);
+
                 FinishedState();
             }
             catch (Exception e)
@@ -315,9 +317,9 @@ namespace KHFM_VF_Patch
         private async Task PatchVideos()
         {
             // If found, extract video patch
-            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEO_ZIP_NAME)))
+            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)))
             {
-                await ExtractPatch(KH1_PATCH_VIDEO_ZIP_NAME);
+                await ExtractPatch(KH1_PATCH_VIDEOS_ZIP_NAME);
 
                 var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
                 var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
