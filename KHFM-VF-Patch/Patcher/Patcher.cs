@@ -85,43 +85,7 @@ namespace KHFM_VF_Patch
                 eventArgs.EntriesPatched++;
                 PatchProgress?.Invoke(null, eventArgs);
             }
-
-            // Add all files that are not in the original HED file and inject them in the PKG stream too
-            //foreach (var filename in inputFiles)
-            //{
-            //    var newFilePath = Path.Combine(inputFolder, filename);
-            //    AddFile(inputFolder, newFilePath, true, patchedHedStream, patchedPkgStream);
-            //    Console.WriteLine($"Added a new file: {filename}");
-            //}
         }
-
-        //private static Hed.Entry AddFile(string inputFolder, string input, bool shouldCompressData, FileStream hedStream, FileStream pkgStream)
-        //{
-        //    using var newFileStream = File.OpenRead(input);
-        //    var decompressedData = newFileStream.ReadAllBytes();
-        //    var filename = GetRelativePath(input, Path.Combine(inputFolder, ORIGINAL_FILES_FOLDER_NAME));
-        //    var compressedData = shouldCompressData ? CompressData(decompressedData): decompressedData;
-        //    var comrpessedDataLenght = compressedData.Length == decompressedData.Length ? -1 : compressedData.Length;
-        //    var offset = pkgStream.Position;
-
-        //    // Encrypt and write current file data in the PKG stream
-        //    var header = CreateAssetHeader(newFileStream, comrpessedDataLenght);
-
-        //    // The seed used for encryption is the data header
-        //    var seed = new MemoryStream();
-        //    BinaryMapping.WriteObject<Asset.Header>(seed, header);
-        //    var encryptionKey = seed.ReadAllBytes();
-        //    var encryptedFileData = Encryption.Encrypt(compressedData, encryptionKey);
-
-        //    BinaryMapping.WriteObject<Asset.Header>(pkgStream, header);
-        //    pkgStream.Write(encryptedFileData);
-
-        //    // Write a new entry in the HED stream
-        //    var hedEntry = CreateHedEntry(filename, decompressedData, compressedData, offset);
-        //    BinaryMapping.WriteObject<Hed.Entry>(hedStream, hedEntry);
-
-        //    return hedEntry;
-        //}
 
         private static Hed.Entry ReplaceFile(
             string inputFolder,
