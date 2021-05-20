@@ -22,7 +22,7 @@ namespace KHFM_VF_Patch
     {
         public static event EventHandler<PatchProgressEventArgs> PatchProgress;
 
-        private static readonly string ResourcePath = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "resources");
+        private static readonly string ResourcePath = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
 
         private const string ORIGINAL_FILES_FOLDER_NAME = "original";
         private const string REMASTERED_FILES_FOLDER_NAME = "remastered";

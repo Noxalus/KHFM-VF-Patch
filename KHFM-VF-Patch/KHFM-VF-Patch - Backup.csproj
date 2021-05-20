@@ -20,8 +20,13 @@
   <ItemGroup>
     <None Remove="Resources\Images\donate.png" />
     <None Remove="Resources\Images\logo.png" />
-    <None Remove="Resources\logo.png" />
-    <None Remove="Resources\donate.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="resources\logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -42,7 +47,7 @@
     <None Update="patch\KH1FM-VF.patch">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\kh1.txt">
+    <None Update="resources\kh1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Textures.patch">

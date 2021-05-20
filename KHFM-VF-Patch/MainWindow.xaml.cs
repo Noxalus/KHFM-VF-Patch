@@ -27,7 +27,8 @@ namespace KHFM_VF_Patch
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
-        private const string KH1_PATCH_ZIP_NAME = "KH1FM-VF.patch";
+        private const string KH1_PATCH_VF_ZIP_NAME = "KH1FM-VF.patch";
+        private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "VFPatch/Patch";
@@ -208,7 +209,16 @@ namespace KHFM_VF_Patch
         {
             try
             {
-                await ExtractPatch();
+                var patchesExtractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
+                //#if RELEASE
+                // Make sure to remove patches extraction folders at first
+                if (Directory.Exists(patchesExtractionFolder))
+                    Directory.Delete(patchesExtractionFolder, true);
+                //#endif
+
+                await ExtractPatch(KH1_PATCH_VF_ZIP_NAME);
+
+                // Create temporary folder to store patched files before to copy them in the actual game folder
                 var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
 
                 if (Directory.Exists(patchedFilesBaseFolder))
@@ -219,7 +229,7 @@ namespace KHFM_VF_Patch
                 foreach (var requiredFile in REQUIRED_FILES)
                 {
                     var pkgFile = Path.Combine(gameFolder, requiredFile);
-                    var patchFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME), Path.GetFileNameWithoutExtension(pkgFile));
+                    var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
                     var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
 
                     if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
@@ -326,10 +336,10 @@ namespace KHFM_VF_Patch
             await CopyToAsync(source, destination, progress, default, 0x100000);
         }
 
-        private async Task ExtractPatch()
+        private async Task ExtractPatch(string patchName)
         {
-            var patchFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_ZIP_NAME);
-            var extractionFolder = Path.Combine(PATCH_FOLDER, Path.GetFileNameWithoutExtension(KH1_PATCH_ZIP_NAME));
+            var patchFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_VF_ZIP_NAME);
+            var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
 
             if (!Directory.Exists(extractionFolder))
                 Directory.CreateDirectory(extractionFolder);
