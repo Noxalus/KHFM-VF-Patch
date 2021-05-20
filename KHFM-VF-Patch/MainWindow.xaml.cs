@@ -27,11 +27,15 @@ namespace KHFM_VF_Patch
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
+        
         private const string KH1_PATCH_VF_ZIP_NAME = "KH1FM-VF.patch";
         private const string KH1_PATCH_VIDEO_ZIP_NAME = "KH1FM-Video.patch";
+        private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
+
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
+        
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "VFPatch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "VFPatch/Patch";
@@ -49,6 +53,7 @@ namespace KHFM_VF_Patch
         private float _patchState = 0f;
         private string _selectedGameFolder;
         private bool _saveOriginalFiles = true;
+        private bool _shouldPatchTexture = true;
 
         public float PatchState
         {
@@ -237,7 +242,13 @@ namespace KHFM_VF_Patch
                 // Extract VF patch files
                 await ExtractPatch(KH1_PATCH_VF_ZIP_NAME);
 
+                // Update videos if the corresponding patch is found
                 //await PatchVideos();
+
+                if (_shouldPatchTexture)
+                {
+                    await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME);
+                }
 
                 // Create temporary folder to store patched files before to copy them in the actual game folder
                 var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
@@ -253,15 +264,12 @@ namespace KHFM_VF_Patch
                     var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
                     var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
 
-                    // TODO: REMOVE THIS
-                    if (!requiredFile.Contains("fifth"))
+                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
                         continue;
 
                     // Make sure to execute this for HED files too
+                    await SaveOrRestore(gameFolder, Path.ChangeExtension(requiredFile, ".hed"));
                     await SaveOrRestore(gameFolder, requiredFile);
-
-                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
-                        continue;
 
                     PatchProgressionMessage.Text = $"Modification de {Path.GetFileName(pkgFile)}...";
 
