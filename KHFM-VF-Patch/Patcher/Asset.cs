@@ -39,6 +39,7 @@ namespace KHFM_VF_Patch
         private readonly Dictionary<string, RemasteredEntry> _entries;
         private readonly Hed.Entry _hedEntry;
         private byte[] _originalData;
+        private byte[] _originalRawData;
         private readonly Dictionary<string, byte[]>  _remasteredAssetsData = new Dictionary<string, byte[]>();
         private readonly Dictionary<string, byte[]>  _remasteredAssetsRawData = new Dictionary<string, byte[]>();
 
@@ -46,9 +47,9 @@ namespace KHFM_VF_Patch
         public Header OriginalAssetHeader => _header;
         public Dictionary<string, RemasteredEntry> RemasteredAssetHeaders => _entries;
         public byte[] OriginalData => _originalData;
-        public Dictionary<string, byte[]> RemasteredAssetsData => _remasteredAssetsData;
-        public Dictionary<string, byte[]> RemasteredAssetsRawData => _remasteredAssetsRawData;
-        public byte[] Key => _key;
+        public byte[] OriginalRawData => _originalRawData;
+        public Dictionary<string, byte[]> RemasteredAssetsDecompressedData => _remasteredAssetsData;
+        public Dictionary<string, byte[]> RemasteredAssetsCompressedData => _remasteredAssetsRawData;
         public byte[] Seed => _seed;
 
         public Asset(Stream stream, Hed.Entry hedEntry)
@@ -82,7 +83,7 @@ namespace KHFM_VF_Patch
             stream.SetPosition(_dataOffset);
         }
 
-        public byte[] ReadRemasteredAsset(string assetName)
+        private byte[] ReadRemasteredAsset(string assetName)
         {
             var header = _entries[assetName];
             var dataLength = header.CompressedLength >= 0 ? header.CompressedLength : header.DecompressedLength;
@@ -92,7 +93,7 @@ namespace KHFM_VF_Patch
 
             var data = _stream.AlignPosition(0x10).ReadBytes(dataLength);
 
-            _remasteredAssetsRawData.Add(assetName, data);
+            _remasteredAssetsRawData.Add(assetName, data.ToArray());
 
             if (_header.CompressedLength > -2)
             {
@@ -111,15 +112,17 @@ namespace KHFM_VF_Patch
                 data = decompressedData;
             }
 
-            _remasteredAssetsData.Add(assetName, data);
+            _remasteredAssetsData.Add(assetName, data.ToArray());
 
             return data;
         }
 
-        public byte[] ReadData()
+        private byte[] ReadData()
         {
             var dataLength = _header.CompressedLength >= 0 ? _header.CompressedLength : _header.DecompressedLength;
             var data = _stream.SetPosition(_dataOffset).ReadBytes(dataLength);
+
+            _originalRawData = data.ToArray();
 
             if (_header.CompressedLength > -2)
             {
@@ -138,7 +141,7 @@ namespace KHFM_VF_Patch
                 data = decompressedData;
             }
 
-            _originalData = data;
+            _originalData = data.ToArray();
 
             return data;
         }
