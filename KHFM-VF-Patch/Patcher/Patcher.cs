@@ -121,7 +121,7 @@ namespace KHFM_VF_Patch
 
                 using var newFileStream = File.OpenRead(completeFilePath);
                 decompressedData = newFileStream.ReadAllBytes();
-                
+
                 var compressedData = decompressedData.ToArray();
                 var compressedDataLenght = originalHeader.CompressedLength;
 
@@ -259,6 +259,12 @@ namespace KHFM_VF_Patch
                 // Don't write into the PKG stream yet as we need to write
                 // all HD assets header juste after original file's data
                 allRemasteredAssetsData.Write(assetData);
+
+                // Make sure to align remastered asset data on 16 bytes
+                if (assetData.Length % 0x10 != 0)
+                {
+                    allRemasteredAssetsData.Write(Enumerable.Repeat((byte)0xCD, 16 - (assetData.Length % 0x10)).ToArray());
+                }
 
                 offset += decompressedLength;
             }
