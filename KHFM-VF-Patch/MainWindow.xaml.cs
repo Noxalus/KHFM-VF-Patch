@@ -24,8 +24,7 @@ namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private static readonly string TOOLS_PATH = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "tools");
-        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "patch");
+        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patch");
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         private const string KH1_PATCH_ZIP_NAME = "KH1FM-VF.patch";
@@ -207,8 +206,6 @@ namespace KHFM_VF_Patch
 
         private async Task Patch(string gameFolder)
         {
-            Debug.WriteLine("Patch the game!!!");
-
             try
             {
                 await ExtractPatch();
@@ -245,7 +242,7 @@ namespace KHFM_VF_Patch
                         var progress = ((double)copiedSize / totalFileSize) * 100;
 
                         PatchState = (float)progress;
-                        Debug.WriteLine("{1} {0:N2}%", progress, filename);
+                        //Debug.WriteLine("{1} {0:N2}%", progress, filename);
                     });
 
                     var patchedHEDFile = Path.ChangeExtension(patchedPKGFile, ".hed");
@@ -297,7 +294,7 @@ namespace KHFM_VF_Patch
                 var progress = ((double)copiedSize / totalFileSize) * 100;
 
                 PatchState = (float)progress;
-                Debug.WriteLine("{1} {0:N2}%", progress, filename);
+                //Debug.WriteLine("{1} {0:N2}%", progress, filename);
             });
 
             string source;
