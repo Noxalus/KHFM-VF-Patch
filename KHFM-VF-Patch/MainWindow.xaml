@@ -45,7 +45,7 @@
             </DockPanel>
             <DockPanel Margin="20,0,0,0">
                 <TextBlock TextWrapping="Wrap" Width="450" FontSize="10">
-                    Certains éléments de l'interface ainsi que certains textes sont restés en anglais dans des cas parfois peu logique.
+                    Certains éléments de l'interface ainsi que certains textes sont restés en anglais dans des cas parfois peu logiques.
                     Par exemple les PC (SP en anglais) sont bel et bien traduits tandis que les PV/PM (HP/MP en anglais) ne le sont pas. Vous trouverez ci-dessous la liste des changements effectués:<LineBreak />
                     <TextBlock Margin="20,0,0,0" Width="430" TextWrapping="Wrap" FontSize="10"> 
                         - Correction des appellations HP/MP en PV/PM dans les textures ainsi que dans les textes<LineBreak />
