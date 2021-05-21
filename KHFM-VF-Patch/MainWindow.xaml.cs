@@ -32,6 +32,7 @@ namespace KHFM_VF_Patch
         private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
         private const string KH1_PATCH_MAGIC_ZIP_NAME = "KH1FM-Magic.patch";
+        private const string KH1_PATCH_STRANGER_ZIP_NAME = "KH1FM-Stranger.patch";
 
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
@@ -284,6 +285,8 @@ namespace KHFM_VF_Patch
                 {
                     await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME);
                 }
+
+                await ExtractPatch(KH1_PATCH_STRANGER_ZIP_NAME);
 
                 // Create temporary folder to store patched files before to copy them in the actual game folder
                 var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
