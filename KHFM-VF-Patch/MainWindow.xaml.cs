@@ -31,6 +31,7 @@ namespace KHFM_VF_Patch
         private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
         private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
+        private const string KH1_PATCH_MAGIC_ZIP_NAME = "KH1FM-Magic.patch";
 
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
@@ -260,6 +261,9 @@ namespace KHFM_VF_Patch
 
                 // Extract VF patch files
                 await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
+
+                // Extract "Magic" to "Magie" fix patch
+                await ExtractPatch(KH1_PATCH_MAGIC_ZIP_NAME);
 
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
