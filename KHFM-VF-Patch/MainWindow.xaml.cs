@@ -67,6 +67,12 @@ namespace KHFM_VF_Patch
             }
         }
 
+        public bool ShouldPatchMagic
+        {
+            get { return (bool)GetValue(ShouldPatchMagicProperty); }
+            set { SetValue(ShouldPatchMagicProperty, value); }
+        }
+
         public bool ShouldPatchTexture
         {
             get { return (bool)GetValue(ShouldPatchTextureProperty); }
@@ -79,6 +85,7 @@ namespace KHFM_VF_Patch
             set { SetValue(ShouldSaveOriginalFilesProperty, value); }
         }
 
+        public static readonly DependencyProperty ShouldPatchMagicProperty = DependencyProperty.Register("PatchMagicOption", typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
         public static readonly DependencyProperty ShouldPatchTextureProperty = DependencyProperty.Register("PatchTextureOption", typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
         public static readonly DependencyProperty ShouldSaveOriginalFilesProperty = DependencyProperty.Register("SaveOriginalFilesOption", typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
 
@@ -110,7 +117,7 @@ namespace KHFM_VF_Patch
             else
             {
                 Debug.WriteLine("Default game folder not found.");
-                GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
+                //GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
                 //GameNotFoundWarningMessage.Text =
                 //    "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. " +
                 //    "Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu sur votre machine.";
@@ -157,6 +164,7 @@ namespace KHFM_VF_Patch
 
         private void PatchingState()
         {
+            GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
             GameFoundMessage.Visibility = Visibility.Collapsed;
             PatchProgressionMessage.Visibility = Visibility.Visible;
             PatchProgressBar.Visibility = Visibility.Visible;
@@ -168,12 +176,13 @@ namespace KHFM_VF_Patch
 
         private void FinishedState()
         {
+            GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
             PatchProgressionMessage.Text = $"Votre jeu a correctement été patché ! Profitez bien des voix françaises ;)";
-
+            PatchProgressionMessage.FontWeight = FontWeights.Bold;
             PatchProgressionMessage.Visibility = Visibility.Visible;
             PatchProgressBar.Visibility = Visibility.Collapsed;
             Credits.Visibility = Visibility.Visible;
-            ImageHeight.Height = new GridLength(75);
+            ImageHeight.Height = new GridLength(0);
             BrowseButton.Visibility = Visibility.Collapsed;
             PatchOptions.Visibility = Visibility.Collapsed;
         }
@@ -262,11 +271,14 @@ namespace KHFM_VF_Patch
                 // Extract VF patch files
                 await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
 
-                // Extract "Magic" to "Magie" fix patch
-                await ExtractPatch(KH1_PATCH_MAGIC_ZIP_NAME);
-
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
+
+                // Extract "Magic" to "Magie" fix patch
+                if (ShouldPatchMagic)
+                {
+                    await ExtractPatch(KH1_PATCH_MAGIC_ZIP_NAME);
+                }
 
                 if (ShouldPatchTexture)
                 {
