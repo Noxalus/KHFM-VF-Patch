@@ -18,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Path = System.IO.Path;
 
 namespace KHFM_VF_Patch
@@ -25,6 +26,32 @@ namespace KHFM_VF_Patch
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
+
+        private const int REQUIRED_RANDOM_QUOTES_COUNT = 3;
+
+        private List<string> RANDOM_QUOTES = new List<string>()
+        {
+            "Cela pourrait être un peu long, je vous conseille d'aller chercher un café...",
+            "Sinon ça a été votre journée ?",
+            "Vous êtes toujours là ? Alors attendez, je vous prépare de quoi vous occuper...",
+            "Saviez vous que Donald Reignoux, l'excellent doubleur de Sora, avait également doublé Titeuf, Lúcio dans Overwatch mais aussi Connor dans Detroit: Become Human ?",
+            "Richard Darbois est connu pour avoir fait des voix emblématiques, dont celle d'Indiana Jones ou de Buzz l'Éclair, mais saviez-vous qu'il a participé à ce Kingdom Hearts en doublant le génie et Oogie Boogie ?",
+            "Kingdom Hearts est le premier jeu de la série, mais ce n'est pas par lui que commence véritablement l'histoire.",
+            "Si comme moi vous n'avez jamais fait la version Final Mix du jeu, sachez qu'un boss plus compliqué que Sephiroth vous attend ! J'ai tellement hâte !",
+            "Ce patch a nécessité des dizaines d'heures de travail et totalise actuellement 119 commits sur 3 repo différents !",
+            "Ne vous inquietez pas, le patch pour les voix française sur Kingdom Hearts 2 est déjà dans les tuyaux !",
+            "Vous trouverez probablement un patch dans le futur qui permettra de ré-utiliser les textures de PS3 sur la version PC (qui sont de meilleures qualité que celle de la version PS4 utilisé aujourd'hui).",
+            "Une modification futur de ce patch permettra peut-être de supprimer les sous-titres pour renforcer l'immersion.",
+            "Saviez-vous que Mickey était censé être le protagoniste principal du jeu à la place de Sora ? Cela expliquerait pourquoi Donald et Dingo sont ses compagnons.",
+            "Disney ne voulait pas que Mickey soit dans le jeu, ils ont finalement accepté, mais à la condition qu'il ne soit présent que dans une seule scène du jeu, Nomura à choisi de le mettre à la fin.",
+            "La compositrice du jeu, Yoko Shimomura a également composé les musiques de Street Fighter 2, Legend of Mana, Xenoblade Chronicles et Final Fantasy XV.",
+            "La musique One-Winged Angel présente dans le jeu vient de Final Fantasy VII et a été composée par Nobuo Uematsu.",
+            "Disney a été très furieux quand ils ont vu que Ariel puisse se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
+            "Dans la Forteresse Oublié il y a une entrée pour un ascenseur près du sommet mais... pas d'ascenseur !",
+            "L'Île du Destin dans la fin des mondes s'appelle Île du Souvenir.",
+            "Quand on détruit la maison de Bourriquet elle apparaît dans une autre page !",
+            "Dans le monde des merveilles on peut voir le four allumé même après avoir grandit !",
+        };
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
 
@@ -54,6 +81,7 @@ namespace KHFM_VF_Patch
         public event PropertyChangedEventHandler PropertyChanged;
         private float _patchState = 0f;
         private string _selectedGameFolder;
+        private int _randomQuotesCounter = 0;
 
         public float PatchState
         {
@@ -137,11 +165,14 @@ namespace KHFM_VF_Patch
             PatchProgressBar.Visibility = Visibility.Collapsed;
             Credits.Visibility = Visibility.Collapsed;
             PatchOptions.Visibility = Visibility.Collapsed;
+            RandomQuotes.Visibility = Visibility.Collapsed;
         }
 
         private void ReadyToPatchState()
         {
             // TODO(bth): Show a button to unpatch the game
+
+            RandomQuotes.Visibility = Visibility.Collapsed;
 
             if (CheckRemainingSpace(_selectedGameFolder))
             {
@@ -173,6 +204,48 @@ namespace KHFM_VF_Patch
             Credits.Visibility = Visibility.Collapsed;
             PatchOptions.Visibility = Visibility.Collapsed;
             ImageHeight.Height = new GridLength(250);
+
+            RandomQuotes.Visibility = Visibility.Visible;
+
+            StartRandomQuotes();
+        }
+
+        private void StartRandomQuotes()
+        {
+            UpdateRandomQuotes(null, null);
+
+            DispatcherTimer timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(10)
+            };
+
+            timer.Tick += UpdateRandomQuotes;
+            timer.Start();
+        }
+
+        private void UpdateRandomQuotes(object sender, EventArgs e)
+        {
+            var random = new Random();
+
+            if (_randomQuotesCounter < REQUIRED_RANDOM_QUOTES_COUNT)
+            {
+                RandomQuotes.Text = RANDOM_QUOTES[_randomQuotesCounter];
+            }
+            else
+            {
+                if (RANDOM_QUOTES.Count <= REQUIRED_RANDOM_QUOTES_COUNT)
+                {
+                    RandomQuotes.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    var randomQuoteIndex = random.Next(REQUIRED_RANDOM_QUOTES_COUNT, RANDOM_QUOTES.Count);
+                    RandomQuotes.Text = RANDOM_QUOTES[randomQuoteIndex];
+                    RANDOM_QUOTES.RemoveAt(randomQuoteIndex);
+                }
+            }
+
+            _randomQuotesCounter++;
         }
 
         private void FinishedState()
@@ -186,6 +259,7 @@ namespace KHFM_VF_Patch
             ImageHeight.Height = new GridLength(0);
             BrowseButton.Visibility = Visibility.Collapsed;
             PatchOptions.Visibility = Visibility.Collapsed;
+            RandomQuotes.Visibility = Visibility.Collapsed;
         }
 
         private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)

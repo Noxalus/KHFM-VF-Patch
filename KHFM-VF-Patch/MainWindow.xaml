@@ -98,7 +98,7 @@
             <LineBreak />
             <LineBreak />  
             
-            Mais également grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
+            Mais aussi grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
             <Bold>
                 <Hyperlink NavigateUri="https://twitter.com/Fotia_13" RequestNavigate="Hyperlink_RequestNavigate">
                     Fotia
@@ -146,5 +146,6 @@
             <LineBreak />  
             <LineBreak /> 
         </TextBlock>
+        <TextBlock x:Name="RandomQuotes" Grid.Column="0" Grid.Row="3" TextWrapping="Wrap" Padding="5" TextAlignment="Center" Foreground="Black" FontStyle="Italic">{RandomQuotes}</TextBlock>
     </Grid>
 </Window>
