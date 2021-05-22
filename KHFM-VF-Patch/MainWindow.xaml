@@ -113,7 +113,7 @@
                 <Hyperlink NavigateUri="https://twitter.com/PurpleHato" RequestNavigate="Hyperlink_RequestNavigate">
                     Purple Hato
                 </Hyperlink>
-            </Bold>: qui s'est occupé de corriger certains anglicismes visuels<LineBreak />
+            </Bold>: qui s'est occupé de corriger certains anglicismes visuels et textuels.<LineBreak />
             <Bold>
                 <Hyperlink NavigateUri="https://twitter.com/TieuLink" RequestNavigate="Hyperlink_RequestNavigate">
                     TieuLink
