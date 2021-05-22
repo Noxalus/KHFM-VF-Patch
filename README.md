@@ -21,7 +21,7 @@ Ce patch a été rendu possible grâce aux travaux effectués par l'équipe de  
 Mais cela a également été possible grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu:
 - [Fotia](https://twitter.com/Fotia_13): qui s'est occupé seul de corriger l'ordre des voix en combat puis a réalisé les voix de la scène inédite à la version Final Mix qui n'a jamais été officiellement doublé en français, le tout en ré-utilisant des voix déjà présentes dans le jeu. Il a aussi conçu le logo actuel du patch.
 - [NOXYAN](https://twitter.com/Noxyan88): qui s'est occupé de remplacer les voix sur les vidéos pré-rendues et de tester l'entièreté du jeu plusieurs fois !
-- [Purple Hato](https://twitter.com/PurpleHato): qui s'est occupé de corriger certains anglicismes visuels.
+- [Purple Hato](https://twitter.com/PurpleHato): qui s'est occupé de corriger certains anglicismes visuels et textuels.
 - [TieuLink](https://twitter.com/TieuLink), [Xeronkar](https://twitter.com/xeronkar), [Napstio](https://www.youtube.com/channel/UCR5O00P0r9BbKWb7X-Gfe-w): pour leurs connaissances sur les fichiers du jeu et leurs tests qui ont permis de déceler les problèmes.
 - [AntonioDePau](https://twitter.com/AntonioDePau): pour avoir corrigé les problèmes de l'outil permettant de patcher les fichiers du jeu
 
