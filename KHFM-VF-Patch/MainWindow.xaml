@@ -100,7 +100,7 @@
             
             Mais aussi grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
             <Bold>
-                <Hyperlink NavigateUri="https://twitter.com/Fotia_13" RequestNavigate="Hyperlink_RequestNavigate">
+                <Hyperlink NavigateUri="https://www.paypal.com/donate/?hosted_button_id=CYJX4ABU4M3UY" RequestNavigate="Hyperlink_RequestNavigate">
                     Fotia
                 </Hyperlink>
             </Bold>: qui s'est occupé de corriger l'ordre des voix pendant les combats, du logo et des voix sur les nouvelles scènes de Final Mix.<LineBreak />
@@ -137,7 +137,7 @@
             <LineBreak />  
             De mon côté (<Bold><Hyperlink NavigateUri="https://twitter.com/Noxalus" RequestNavigate="Hyperlink_RequestNavigate">Noxalus</Hyperlink></Bold>) j'ai initié ce projet 2 semaines avant 
             la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.<LineBreak />
-            Si vous appréciez mon travail, vous pouvez toujours me remercier en m'offrant une pizza ! :p
+            Si vous appréciez mon travail, vous pouvez toujours me remercier, et moi seul, en m'offrant une pizza ! :p
             <LineBreak />  
             <LineBreak />  
             <InlineUIContainer>
