@@ -53,7 +53,10 @@
     <None Update="Resources\kh1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\Patches\KH1FM-Magic.patch">
+    <None Update="Resources\Patches\KH1FM-Magic-EN.patch">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Patches\KH1FM-Magic-FR.patch">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Stranger.patch">

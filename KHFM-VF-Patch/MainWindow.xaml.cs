@@ -58,7 +58,7 @@ namespace KHFM_VF_Patch
         private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
         private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
-        private const string KH1_PATCH_MAGIC_ZIP_NAME = "KH1FM-Magic.patch";
+        private const string KH1_PATCH_MAGIC_ZIP_NAME = "KH1FM-Magic-{LANG}.patch";
         private const string KH1_PATCH_STRANGER_ZIP_NAME = "KH1FM-Stranger.patch";
 
         private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
@@ -352,7 +352,18 @@ namespace KHFM_VF_Patch
                 // Extract "Magic" to "Magie" fix patch
                 if (ShouldPatchMagic)
                 {
-                    await ExtractPatch(KH1_PATCH_MAGIC_ZIP_NAME);
+                    var magicPatchName = KH1_PATCH_MAGIC_ZIP_NAME;
+
+                    if (ShouldPatchTexture)
+                    {
+                        magicPatchName = magicPatchName.Replace("{LANG}", "FR");
+                    }
+                    else
+                    {
+                        magicPatchName = magicPatchName.Replace("{LANG}", "EN");
+                    }
+
+                    await ExtractPatch(magicPatchName);
                 }
 
                 if (ShouldPatchTexture)
