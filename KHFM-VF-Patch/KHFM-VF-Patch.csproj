@@ -15,6 +15,10 @@
     <PackageIcon>logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/Noxalus/KHFM-VF-Patch</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <Version>1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
