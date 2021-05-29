@@ -31,13 +31,7 @@ namespace KHFM_VF_Patch
         {
             var kh1Names = File.ReadAllLines(Path.Combine(ResourcePath, "kh1.txt")).ToDictionary(x => ToString(MD5.HashData(Encoding.UTF8.GetBytes(x))), x => x);
 
-            var originalFilesFolder = Path.Combine(inputFolder, ORIGINAL_FILES_FOLDER_NAME);
             var remasteredFilesFolder = Path.Combine(inputFolder, REMASTERED_FILES_FOLDER_NAME);
-
-            if (!Directory.Exists(originalFilesFolder))
-            {
-                throw new Exception($"Unable to find folder {originalFilesFolder}, please make sure files to patch are there.");
-            }
 
             var outputDir = outputFolder ?? Path.GetFileNameWithoutExtension(pkgFile);
 
