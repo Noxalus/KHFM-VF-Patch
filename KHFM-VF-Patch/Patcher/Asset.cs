@@ -22,7 +22,7 @@ namespace KHFM_VF_Patch
         public class RemasteredEntry
         {
             [Data(Count = 0x20)] public string Name { get; set; }
-            // The offiset is relative to: Original asset's header size + all remastered asset's header size + original asset's decompressed data length
+            // The offset is relative to: Original asset's header size + all remastered asset's header size + original asset's decompressed data length
             [Data] public int Offset { get; set; }
             [Data] public int Unknown24 { get; set; }
             [Data] public int DecompressedLength { get; set; }
@@ -95,7 +95,7 @@ namespace KHFM_VF_Patch
 
             _remasteredAssetsRawData.Add(assetName, data.ToArray());
 
-            if (_header.CompressedLength > -2)
+            if (header.CompressedLength > -2)
             {
                 for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
                     Encryption.DecryptChunk(_key, data, i, PASS_COUNT);
