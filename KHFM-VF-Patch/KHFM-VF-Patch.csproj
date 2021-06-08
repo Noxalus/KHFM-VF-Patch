@@ -76,11 +76,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Videos.patch">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Voices.patch">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if not exist $(TargetDir)Resources\Patches\KH1FM-Magic-EN.patch (powershell Compress-Archive -Path '$(SolutionDir)Resources\Patches\KH1FM-Magic-EN/*' -DestinationPath '$(TargetDir)Resources\Patches\KH1FM-Magic-EN.zip' ; Rename-Item -Path '$(TargetDir)Resources\Patches\KH1FM-Magic-EN.zip' -NewName 'KH1FM-Magic-EN.patch')&#xD;&#xA;if not exist $(TargetDir)Resources\Patches\KH1FM-Magic-FR.patch (powershell Compress-Archive -Path '$(SolutionDir)Resources\Patches\KH1FM-Magic-FR/*' -DestinationPath '$(TargetDir)Resources\Patches\KH1FM-Magic-FR.zip' ; Rename-Item -Path '$(TargetDir)Resources\Patches\KH1FM-Magic-FR.zip' -NewName 'KH1FM-Magic-FR.patch')&#xD;&#xA;if not exist $(TargetDir)Resources\Patches\KH1FM-Stranger.patch (powershell Compress-Archive -Path '$(SolutionDir)Resources\Patches\KH1FM-Stranger/*' -DestinationPath '$(TargetDir)Resources\Patches\KH1FM-Stranger.zip' ; Rename-Item -Path '$(TargetDir)Resources\Patches\KH1FM-Stranger.zip' -NewName 'KH1FM-Stranger.patch')&#xD;&#xA;if not exist $(TargetDir)Resources\Patches\KH1FM-Textures.patch (powershell Compress-Archive -Path '$(SolutionDir)Resources\Patches\KH1FM-Textures/*' -DestinationPath '$(TargetDir)Resources\Patches\KH1FM-Textures.zip' ; Rename-Item -Path '$(TargetDir)Resources\Patches\KH1FM-Textures.zip' -NewName 'KH1FM-Textures.patch')&#xD;&#xA;if not exist $(TargetDir)Resources\Patches\KH1FM-Voices.patch (powershell Compress-Archive -Path '$(SolutionDir)Resources\Patches\KH1FM-Voices/*' -DestinationPath '$(TargetDir)Resources\Patches\KH1FM-Voices.zip' ; Rename-Item -Path '$(TargetDir)Resources\Patches\KH1FM-Voices.zip' -NewName 'KH1FM-Voices.patch')&#xD;&#xA;" />
+  </Target>
 
 </Project>
