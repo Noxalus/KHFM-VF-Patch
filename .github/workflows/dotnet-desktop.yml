@@ -12,7 +12,11 @@ jobs:
       - name: Install 7Zip PowerShell Module
         shell: powershell
         run: Install-Module 7Zip4PowerShell -Force -Verbose
-      
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
       - name: Checkout repository
         uses: actions/checkout@v2
       
@@ -27,8 +31,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: test
-          path: KHFM-VF-Patch-x86.zip
+          name: KHFM-VF-Patch-x86.zip
+          path: .\KHFM-VF-Patch\bin\x86\Release\net5.0-windows
           
       # - name: Create Release
       #   id: create_release
