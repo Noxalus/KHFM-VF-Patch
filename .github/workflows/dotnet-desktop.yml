@@ -15,10 +15,10 @@ jobs:
       
       - name: Build Binary
         shell: cmd
-        run: call .\Build.cmd
+        run: call .\CI\Build.cmd
       - name: Build Artifact
         shell: cmd
-        run: call .\ArtifactBuild.cmd
+        run: call .\CI\ArtifactBuild.cmd
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
