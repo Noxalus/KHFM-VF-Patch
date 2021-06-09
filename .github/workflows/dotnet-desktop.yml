@@ -1,6 +1,7 @@
-name: Win32Sample GitHub Release
+name: GitHub Release
 on:
   push:
+    branches: [ dev ]
     tags:
       - 'v*'
 jobs:
@@ -19,35 +20,35 @@ jobs:
       - name: Build Artifact
         shell: cmd
         run: call .\CI\ArtifactBuild.cmd
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Automated Release by GitHub Action CI
-          draft: false
-          prerelease: true
-      - name: Upload Release Asset (x64)
-        id: upload-release-asset-x64
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./SampleX64.ZIP
-          asset_name: SampleX64.ZIP
-          asset_content_type: application/zip
-      - name: Upload Release Asset (x86)
-        id: upload-release-asset-x86
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./SampleX86.ZIP
-          asset_name: SampleX86.ZIP
-          asset_content_type: application/zip
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@latest
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     release_name: Release ${{ github.ref }}
+      #     body: |
+      #       Automated Release by GitHub Action CI
+      #     draft: false
+      #     prerelease: true
+      # - name: Upload Release Asset (x64)
+      #   id: upload-release-asset-x64
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./SampleX64.ZIP
+      #     asset_name: SampleX64.ZIP
+      #     asset_content_type: application/zip
+      # - name: Upload Release Asset (x86)
+      #   id: upload-release-asset-x86
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./SampleX86.ZIP
+      #     asset_name: SampleX86.ZIP
+      #     asset_content_type: application/zip
