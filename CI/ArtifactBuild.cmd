@@ -1,7 +1,9 @@
-@echo off
+@REM @echo off
 
 pushd "%~dp0"
 cd ..\KHFM-VF-Patch
+
+dir
 
 @REM powershell Compress-7Zip "bin\x64\Release" -ArchiveFileName "..\KHFM-VF-Patch-x64.zip" -Format Zip
 powershell Compress-7Zip "bin\x86\Release" -ArchiveFileName "..\KHFM-VF-Patch-x86.zip" -Format Zip
@@ -9,4 +11,4 @@ powershell Compress-7Zip "bin\x86\Release" -ArchiveFileName "..\KHFM-VF-Patch-x8
 :exit
 popd
 
-@echo on
+@REM @echo on
