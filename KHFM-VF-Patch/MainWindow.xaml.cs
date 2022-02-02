@@ -55,25 +55,37 @@ namespace KHFM_VF_Patch
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
 
+        private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
+        
         private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
         private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
         private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
         private const string KH1_PATCH_MAGIC_ZIP_NAME = "KH1FM-Magic-{LANG}.patch";
         private const string KH1_PATCH_STRANGER_ZIP_NAME = "KH1FM-Stranger.patch";
 
-        private const string KH1_PATCH_EXTRACTION_FOLDER_NAME = "KH1_PATCH";
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
+
+        private const string KH2_PATCH_EXTRACTION_FOLDER_NAME = "KH2_PATCH";
+
+        private const string KH2_PATCH_VOICES_ZIP_NAME = "KH2FM-Voices.patch";
 
         private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string SAVE_FOLDER_NAME = "Patch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
-        private static readonly List<string> REQUIRED_FILES = new List<string>()
+        private static readonly List<string> KH1_REQUIRED_FILES = new List<string>()
         {
             "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
             "Image/en/kh1_third.pkg", "Image/en/kh1_third.hed",
             "Image/en/kh1_fourth.pkg", "Image/en/kh1_fourth.hed",
             "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
+        };
+
+        private static readonly List<string> KH2_REQUIRED_FILES = new List<string>()
+        {
+            "Image/en/kh2_first.pkg", "Image/en/kh2_first.hed",
+            "Image/en/kh2_fifth.pkg", "Image/en/kh2_fifth.hed",
+            "Image/en/kh2_sixth.pkg", "Image/en/kh2_sixth.hed",
         };
 
         private Progress<List<object>> _progress;
@@ -296,7 +308,8 @@ namespace KHFM_VF_Patch
         private void PatchGameButtonClick(object sender, RoutedEventArgs e)
         {
             PatchingState();
-            _ = Patch(_selectedGameFolder);
+            //_ = PatchKH1FM(_selectedGameFolder);
+            _ = PatchKH2FM(_selectedGameFolder);
         }
 
         private bool CheckGameFolder(string folder)
@@ -304,7 +317,7 @@ namespace KHFM_VF_Patch
             var directoryName = Path.GetFileName(folder);
 
             // Check PKG/HED files
-            foreach (var requiredFile in REQUIRED_FILES)
+            foreach (var requiredFile in KH1_REQUIRED_FILES)
             {
                 var completePath = Path.Combine(folder, requiredFile);
 
@@ -332,7 +345,7 @@ namespace KHFM_VF_Patch
             return drive.AvailableFreeSpace;
         }
 
-        private async Task Patch(string gameFolder)
+        private async Task PatchKH1FM(string gameFolder)
         {
             try
             {
@@ -344,7 +357,7 @@ namespace KHFM_VF_Patch
                 //#endif
 
                 // Extract VF patch files
-                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
+                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME, KH1_PATCH_EXTRACTION_FOLDER_NAME);
 
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
@@ -363,15 +376,15 @@ namespace KHFM_VF_Patch
                         magicPatchName = magicPatchName.Replace("{LANG}", "EN");
                     }
 
-                    await ExtractPatch(magicPatchName);
+                    await ExtractPatch(magicPatchName, KH1_PATCH_EXTRACTION_FOLDER_NAME);
                 }
 
                 if (ShouldPatchTexture)
                 {
-                    await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME);
+                    await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME, KH1_PATCH_EXTRACTION_FOLDER_NAME);
                 }
 
-                await ExtractPatch(KH1_PATCH_STRANGER_ZIP_NAME);
+                await ExtractPatch(KH1_PATCH_STRANGER_ZIP_NAME, KH1_PATCH_EXTRACTION_FOLDER_NAME);
 
                 // Create temporary folder to store patched files before to copy them in the actual game folder
                 var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
@@ -381,7 +394,85 @@ namespace KHFM_VF_Patch
 
                 Directory.CreateDirectory(patchedFilesBaseFolder);
 
-                foreach (var requiredFile in REQUIRED_FILES)
+                foreach (var requiredFile in KH1_REQUIRED_FILES)
+                {
+                    var pkgFile = Path.Combine(gameFolder, requiredFile);
+                    var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
+                    var patchedPKGFile = Path.Combine(patchedFilesBaseFolder, Path.GetFileName(pkgFile));
+
+                    if (Path.GetExtension(requiredFile) != ".pkg" || !Directory.Exists(patchFolder))
+                        continue;
+
+                    // Make sure to execute this for HED files too
+                    await SaveOrRestore(gameFolder, Path.ChangeExtension(requiredFile, ".hed"));
+                    await SaveOrRestore(gameFolder, requiredFile);
+
+                    PatchProgressionMessage.Text = $"Modification de {Path.GetFileName(pkgFile)}...";
+
+                    Patcher.PatchProgress += PatchProgress;
+                    await Task.Run(() => Patcher.Patch(pkgFile, patchFolder, patchedFilesBaseFolder));
+
+                    // Copy patched PKG to the right location
+                    var progress = new Progress<List<object>>(value =>
+                    {
+                        var copiedSize = (long)value[0];
+                        var totalFileSize = (long)value[1];
+                        var filename = (string)value[2];
+
+                        var progress = ((double)copiedSize / totalFileSize) * 100;
+
+                        PatchState = (float)progress;
+                        //Debug.WriteLine("{1} {0:N2}%", progress, filename);
+                    });
+
+                    var patchedHEDFile = Path.ChangeExtension(patchedPKGFile, ".hed");
+                    var originalHEDFile = Path.ChangeExtension(pkgFile, ".hed");
+
+                    PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(patchedHEDFile)} patché dans le dossier du jeu...";
+
+                    await CopyToAsync(patchedHEDFile, originalHEDFile, progress, default);
+
+                    PatchProgressionMessage.Text = $"Copie du fichier {Path.GetFileName(patchedPKGFile)} patché dans le dossier du jeu...";
+
+                    await CopyToAsync(patchedPKGFile, pkgFile, progress, default, 0x1000000);
+                }
+
+                Directory.Delete(patchedFilesBaseFolder, true);
+
+                FinishedState();
+            }
+            catch (Exception e)
+            {
+                PatchProgressionMessage.Foreground = Brushes.Red;
+                PatchProgressionMessage.Text = $"Une erreur s'est produite: {e.Message}";
+
+                Debug.WriteLine(e.Message);
+            }
+        }
+
+        private async Task PatchKH2FM(string gameFolder)
+        {
+            try
+            {
+                var patchesExtractionFolder = Path.Combine(PATCH_FOLDER, KH2_PATCH_EXTRACTION_FOLDER_NAME);
+                //#if RELEASE
+                // Make sure to remove patches extraction folders at first
+                if (Directory.Exists(patchesExtractionFolder))
+                    Directory.Delete(patchesExtractionFolder, true);
+                //#endif
+
+                // Extract VF patch files
+                await ExtractPatch(KH2_PATCH_VOICES_ZIP_NAME, KH2_PATCH_EXTRACTION_FOLDER_NAME);
+
+                // Create temporary folder to store patched files before to copy them in the actual game folder
+                var patchedFilesBaseFolder = Path.Combine(gameFolder, PATCHED_FILES_FOLDER_NAME);
+
+                if (Directory.Exists(patchedFilesBaseFolder))
+                    Directory.Delete(patchedFilesBaseFolder, true);
+
+                Directory.CreateDirectory(patchedFilesBaseFolder);
+
+                foreach (var requiredFile in KH2_REQUIRED_FILES)
                 {
                     var pkgFile = Path.Combine(gameFolder, requiredFile);
                     var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
@@ -442,7 +533,7 @@ namespace KHFM_VF_Patch
             // If found, extract video patch
             if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)))
             {
-                await ExtractPatch(KH1_PATCH_VIDEOS_ZIP_NAME);
+                await ExtractPatch(KH1_PATCH_VIDEOS_ZIP_NAME, KH1_PATCH_EXTRACTION_FOLDER_NAME);
 
                 var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
                 var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
@@ -515,10 +606,10 @@ namespace KHFM_VF_Patch
             await CopyToAsync(source, destination, _progress, default, 0x100000);
         }
 
-        private async Task ExtractPatch(string patchName)
+        private async Task ExtractPatch(string patchName, string extractionFolderName)
         {
             var patchFile = Path.Combine(PATCH_FOLDER, patchName);
-            var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
+            var extractionFolder = Path.Combine(PATCH_FOLDER, extractionFolderName);
 
             if (!Directory.Exists(extractionFolder))
                 Directory.CreateDirectory(extractionFolder);

@@ -57,6 +57,9 @@
     <None Update="Resources\kh1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\kh2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Patches\KH1FM-Magic-EN.patch">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -82,5 +85,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if not exist $(TargetDir)Resources\Patches\KH2FM-Voices.patch (powershell Compress-7Zip '$(SolutionDir)Resources\Patches\KH2FM-Voices' -ArchiveFileName '$(TargetDir)Resources\Patches\KH2FM-Voices.patch' -Format Zip)&#xD;&#xA;" />
+  </Target>
 
 </Project>

@@ -29,7 +29,9 @@ namespace KHFM_VF_Patch
 
         public static void Patch(string pkgFile, string inputFolder, string outputFolder)
         {
-            var kh1Names = File.ReadAllLines(Path.Combine(ResourcePath, "kh1.txt")).ToDictionary(x => ToString(MD5.HashData(Encoding.UTF8.GetBytes(x))), x => x);
+            var kh1Names = File.ReadAllLines(Path.Combine(ResourcePath, "kh1.txt"));
+            var kh2Names = File.ReadAllLines(Path.Combine(ResourcePath, "kh2.txt"));
+            var names = kh1Names.Concat(kh2Names).ToDictionary(x => ToString(MD5.HashData(Encoding.UTF8.GetBytes(x))), x => x);
 
             var remasteredFilesFolder = Path.Combine(inputFolder, REMASTERED_FILES_FOLDER_NAME);
 
@@ -58,9 +60,11 @@ namespace KHFM_VF_Patch
                 var hash = ToString(hedHeader.MD5);
 
                 // We don't know this filename, we ignore it
-                if (!kh1Names.TryGetValue(hash, out var filename))
+                if (!names.TryGetValue(hash, out var filename))
                 {
-                    throw new Exception("Unknown filename!");
+                    //throw new Exception("Unknown filename!");
+                    Console.WriteLine($"Unknown filename: {hash}");
+                    continue;
                 }
 
                 //Debug.WriteLine(filename);
