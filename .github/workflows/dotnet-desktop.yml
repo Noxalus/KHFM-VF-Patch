@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: KHFM-VF-Patch-x86
-          path: .\KHFM-VF-Patch\bin\x86\Release\net5.0-windows
+          path: .\KHFM-VF-Patch\KHFM-VF-Patch-x86.zip
 
       # - name: Create Release
       #   id: create_release
