@@ -12,6 +12,9 @@ cd ..\KHFM-VF-Patch
 "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" KHFM-VF-Patch.sln /t:Build /p:Configuration=Release /p:Platform=x86
 "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" KHFM-VF-Patch.sln /t:Rebuild /p:Configuration=Release /p:Platform=x86
 
+powershell Compress-7Zip "Resources\Patches\KH1FM-Magic-EN" -ArchiveFileName "KH1FM-Magic-EN" -Format Zip
+rm -r "Resources\Patches\KH1FM-Magic-EN"
+
 dir
 
 :exit
