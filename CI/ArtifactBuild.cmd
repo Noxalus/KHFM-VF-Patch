@@ -19,6 +19,10 @@ echo "Version: %VERSION%"
 
 dir
 
+cd "bin\x86\Release\net5.0-windows\Resources"
+
+dir
+
 :exit
 popd
 
