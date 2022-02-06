@@ -76,7 +76,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Videos.patch">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Patches\KH1FM-Voices.patch">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
