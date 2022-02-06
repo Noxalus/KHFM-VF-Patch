@@ -104,17 +104,22 @@ namespace KHFM_VF_Patch
             };
 
             // Use the base original asset data by default
-            var decompressedData = asset.OriginalData;
+            var decompressedDataSize = asset.OriginalAssetHeader.DecompressedLength;
+
             var encryptedData = asset.OriginalRawData;
             var encryptionSeed = asset.Seed;
+            var isRriginalFileReplaced = false;
 
             // We want to replace the original file
             if (File.Exists(completeFilePath))
             {
+                // Only read data if needed
+                asset.ReadData();
+
                 Debug.WriteLine($"Replacing original: {filename}!");
 
                 using var newFileStream = File.OpenRead(completeFilePath);
-                decompressedData = newFileStream.ReadAllBytes();
+                var decompressedData = newFileStream.ReadAllBytes();
 
                 var compressedData = decompressedData.ToArray();
                 var compressedDataLenght = originalHeader.CompressedLength;
@@ -133,21 +138,25 @@ namespace KHFM_VF_Patch
 
                 // The seed used for encryption is the original data header
                 var seed = new MemoryStream();
-                BinaryMapping.WriteObject<Asset.Header>(seed, header);
+                BinaryMapping.WriteObject(seed, header);
 
                 encryptionSeed = seed.ReadAllBytes();
                 encryptedData = header.CompressedLength > -2 ? Encryption.Encrypt(compressedData, encryptionSeed) : compressedData;
+
+                decompressedDataSize = decompressedData.Length;
+
+                isRriginalFileReplaced = true;
             }
 
             // Write original file header
-            BinaryMapping.WriteObject<Asset.Header>(pkgStream, header);
+            BinaryMapping.WriteObject(pkgStream, header);
 
-            var remasteredHeaders = new List<Asset.RemasteredEntry>();
-
-            // Is there remastered assets?
-            if (header.RemasteredAssetCount > 0)
+            // Should we replace a remastered asset?
+            if (header.RemasteredAssetCount > 0 && (isRriginalFileReplaced || ShouldReplaceRemasteredAssets(inputFolder, filename, asset)))
             {
-                remasteredHeaders = ReplaceRemasteredAssets(inputFolder, filename, asset, pkgStream, encryptionSeed, encryptedData);
+                // Only read data if needed
+                asset.ReadData();
+                ReplaceRemasteredAssets(inputFolder, filename, asset, pkgStream, encryptionSeed, encryptedData);
             }
             else
             {
@@ -159,7 +168,7 @@ namespace KHFM_VF_Patch
             var hedHeader = new Hed.Entry()
             {
                 MD5 = ToBytes(CreateMD5(filename)),
-                ActualLength = decompressedData.Length,
+                ActualLength = decompressedDataSize,
                 DataLength = (int)(pkgStream.Position - offset),
                 Offset = offset
             };
@@ -173,9 +182,28 @@ namespace KHFM_VF_Patch
                 hedHeader.DataLength = originalHedHeader.DataLength;
             }
 
-            BinaryMapping.WriteObject<Hed.Entry>(hedStream, hedHeader);
+            BinaryMapping.WriteObject(hedStream, hedHeader);
 
             return hedHeader;
+        }
+
+        private static bool ShouldReplaceRemasteredAssets(string inputFolder, string originalFile, Asset asset)
+        {
+            var relativePath = GetRelativePath(originalFile, Path.Combine(inputFolder, ORIGINAL_FILES_FOLDER_NAME));
+            var remasteredAssetsFolder = Path.Combine(inputFolder, REMASTERED_FILES_FOLDER_NAME, relativePath);
+
+            foreach (var remasteredAssetHeader in asset.RemasteredAssetHeaders.Values)
+            {
+                var filename = remasteredAssetHeader.Name;
+                var assetFilePath = Path.Combine(remasteredAssetsFolder, filename);
+
+                if (File.Exists(assetFilePath))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static List<Asset.RemasteredEntry> ReplaceRemasteredAssets(string inputFolder, string originalFile, Asset asset, FileStream pkgStream, byte[] seed, byte[] originalAssetData)

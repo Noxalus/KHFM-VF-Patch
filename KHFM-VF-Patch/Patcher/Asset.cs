@@ -43,9 +43,12 @@ namespace KHFM_VF_Patch
         private readonly Dictionary<string, byte[]>  _remasteredAssetsData = new Dictionary<string, byte[]>();
         private readonly Dictionary<string, byte[]>  _remasteredAssetsRawData = new Dictionary<string, byte[]>();
 
+        private bool _isDataRead;
+
         public string[] Assets { get; }
         public Header OriginalAssetHeader => _header;
         public Dictionary<string, RemasteredEntry> RemasteredAssetHeaders => _entries;
+        public object OriginalDataSize { get; internal set; }
         public byte[] OriginalData => _originalData;
         public byte[] OriginalRawData => _originalRawData;
         public Dictionary<string, byte[]> RemasteredAssetsDecompressedData => _remasteredAssetsData;
@@ -72,18 +75,50 @@ namespace KHFM_VF_Patch
             _dataOffset = stream.Position;
 
             Assets = entries.Select(x => x.Name).ToArray();
+        }
 
-            ReadData();
+        public void ReadData()
+        {
+            if (_isDataRead)
+            {
+                return;
+            }
+
+            var dataLength = _header.CompressedLength >= 0 ? _header.CompressedLength : _header.DecompressedLength;
+            var data = _stream.SetPosition(_dataOffset).ReadBytes(dataLength);
+
+            _originalRawData = data.ToArray();
+
+            if (_header.CompressedLength > -2)
+            {
+                for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
+                    Encryption.DecryptChunk(_key, data, i, PASS_COUNT);
+            }
+
+            if (_header.CompressedLength > -1)
+            {
+                using var compressedStream = new MemoryStream(data);
+                using var deflate = new DeflateStream(compressedStream.SetPosition(2), CompressionMode.Decompress);
+
+                var decompressedData = new byte[_header.DecompressedLength];
+                deflate.Read(decompressedData);
+
+                data = decompressedData;
+            }
+
+            _originalData = data.ToArray();
 
             foreach (var remasteredAssetName in Assets)
             {
                 ReadRemasteredAsset(remasteredAssetName);
             }
 
-            stream.SetPosition(_dataOffset);
+            _stream.SetPosition(_dataOffset);
+
+            _isDataRead = true;
         }
 
-        private byte[] ReadRemasteredAsset(string assetName)
+        private void ReadRemasteredAsset(string assetName)
         {
             var header = _entries[assetName];
             var dataLength = header.CompressedLength >= 0 ? header.CompressedLength : header.DecompressedLength;
@@ -113,37 +148,6 @@ namespace KHFM_VF_Patch
             }
 
             _remasteredAssetsData.Add(assetName, data.ToArray());
-
-            return data;
-        }
-
-        private byte[] ReadData()
-        {
-            var dataLength = _header.CompressedLength >= 0 ? _header.CompressedLength : _header.DecompressedLength;
-            var data = _stream.SetPosition(_dataOffset).ReadBytes(dataLength);
-
-            _originalRawData = data.ToArray();
-
-            if (_header.CompressedLength > -2)
-            {
-                for (var i = 0; i < Math.Min(dataLength, 0x100); i += 0x10)
-                    Encryption.DecryptChunk(_key, data, i, PASS_COUNT);
-            }
-
-            if (_header.CompressedLength > -1)
-            {
-                using var compressedStream = new MemoryStream(data);
-                using var deflate = new DeflateStream(compressedStream.SetPosition(2), CompressionMode.Decompress);
-
-                var decompressedData = new byte[_header.DecompressedLength];
-                deflate.Read(decompressedData);
-
-                data = decompressedData;
-            }
-
-            _originalData = data.ToArray();
-
-            return data;
         }
     }
 }
