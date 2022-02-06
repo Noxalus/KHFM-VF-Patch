@@ -12,8 +12,11 @@ cd ..\KHFM-VF-Patch
 "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" KHFM-VF-Patch.sln /t:Build /p:Configuration=Release /p:Platform=x86
 "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe" KHFM-VF-Patch.sln /t:Rebuild /p:Configuration=Release /p:Platform=x86
 
-powershell Compress-7Zip "Resources\Patches\KH1FM-Magic-EN" -ArchiveFileName "KH1FM-Magic-EN" -Format Zip
-rm -r "Resources\Patches\KH1FM-Magic-EN"
+powershell Compress-7Zip "Resources\Patches\KH1FM-Magic-EN" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\KH1FM-Magic-EN.zip" -Format Zip
+powershell Compress-7Zip "Resources\Patches\KH1FM-Magic-FR" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\KH1FM-Magic-FR.zip" -Format Zip
+powershell Compress-7Zip "Resources\Patches\KH1FM-Stranger" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\KH1FM-Stranger.zip" -Format Zip
+powershell Compress-7Zip "Resources\Patches\KH1FM-Textures" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\KH1FM-Textures.zip" -Format Zip
+powershell Compress-7Zip "Resources\Patches\KH1FM-Voices" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\KH1FM-Voices.zip" -Format Zip
 
 dir
 
