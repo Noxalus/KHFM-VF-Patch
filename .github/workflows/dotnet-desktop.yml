@@ -13,18 +13,16 @@ jobs:
         shell: powershell
         run: Install-Module 7Zip4PowerShell -Force -Verbose
 
-      - name: Get the version
-        uses: kzrnm/get-net-sdk-project-versions-action@v1
-        id: get-version
-        with:
-          proj-path: .\KHFM-VF-Patch\KHFM-VF-Patch.csproj
-
-      - run: echo "${{steps.get-version.outputs.version}}"
-
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           lfs: 'true'
+
+      - name: Get the version
+        uses: kzrnm/get-net-sdk-project-versions-action@v1
+        id: get-version
+        with:
+          proj-path: KHFM-VF-Patch/KHFM-VF-Patch.csproj
 
       - name: Build Binary
         shell: cmd
@@ -47,9 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get-version.outputs.version }}
-          release_name: Release ${{ steps.get-version.outputs.version }}
-          body: |
-            Automated Release by GitHub Action CI
+          release_name: v${{ steps.get-version.outputs.version }}
           draft: true
           prerelease: true
 
@@ -60,6 +56,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./KHFM-VF-Patch.zip
-          asset_name: KHFM-VF-Patch.ZIP
+          asset_path: ./KHFM-VF-Patch/KHFM-VF-Patch.zip
+          asset_name: KHFM-VF-Patch-${{ steps.get-version.outputs.version }}.zip
           asset_content_type: application/zip
