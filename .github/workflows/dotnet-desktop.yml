@@ -14,13 +14,18 @@ jobs:
         run: Install-Module 7Zip4PowerShell -Force -Verbose
 
       - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        uses: kzrnm/get-net-sdk-project-versions-action@v1
+        id: get-version
+        with:
+          proj-path: .\KHFM-VF-Patch\KHFM-VF-Patch.csproj
+
+      - run: echo "${{steps.get-version.outputs.version}}"
 
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           lfs: 'true'
+
       - name: Build Binary
         shell: cmd
         run: call .\CI\Build.cmd
@@ -32,38 +37,29 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: KHFM-VF-Patch-x86
+          name: KHFM-VF-Patch
           path: .\KHFM-VF-Patch\bin\x86\Release\net5.0-windows
 
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@latest
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ github.ref }}
-      #     release_name: Release ${{ github.ref }}
-      #     body: |
-      #       Automated Release by GitHub Action CI
-      #     draft: false
-      #     prerelease: true
-      # - name: Upload Release Asset (x64)
-      #   id: upload-release-asset-x64
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./SampleX64.ZIP
-      #     asset_name: SampleX64.ZIP
-      #     asset_content_type: application/zip
-      # - name: Upload Release Asset (x86)
-      #   id: upload-release-asset-x86
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./SampleX86.ZIP
-      #     asset_name: SampleX86.ZIP
-      #     asset_content_type: application/zip
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: Release ${{ steps.get-version.outputs.version }}
+          body: |
+            Automated Release by GitHub Action CI
+          draft: true
+          prerelease: true
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./KHFM-VF-Patch.zip
+          asset_name: KHFM-VF-Patch.ZIP
+          asset_content_type: application/zip
