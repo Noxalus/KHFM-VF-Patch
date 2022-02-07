@@ -48,7 +48,9 @@ namespace KHFM_VF_Patch
         public string[] Assets { get; }
         public Header OriginalAssetHeader => _header;
         public Dictionary<string, RemasteredEntry> RemasteredAssetHeaders => _entries;
-        public object OriginalDataSize { get; internal set; }
+        public Stream Stream => _stream;
+        public long BaseOffset => _baseOffset;
+        public long DataOffset => _dataOffset;
         public byte[] OriginalData => _originalData;
         public byte[] OriginalRawData => _originalRawData;
         public Dictionary<string, byte[]> RemasteredAssetsDecompressedData => _remasteredAssetsData;

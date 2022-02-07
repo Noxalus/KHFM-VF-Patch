@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using Xe.BinaryMapper;
+﻿using System.IO;
 
 namespace KHFM_VF_Patch
 {
@@ -46,6 +40,12 @@ namespace KHFM_VF_Patch
             return misalignment > 0 ? offset + alignment - misalignment : offset;
         }
 
-        public static T AlignPosition<T>(this T stream, int alignValue) where T : Stream => stream.SetPosition(Align(stream.Position, alignValue));
+        public static Stream AlignPosition(this Stream stream, int alignValue) => stream.SetPosition(Align(stream.Position, alignValue));
+
+        public static void CopyTo(this Stream stream, Stream destination, long startOffset, int size)
+        {
+            stream.SetPosition(startOffset);
+            destination.Write(stream.ReadBytes(size));
+        }
     }
 }

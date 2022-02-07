@@ -43,7 +43,7 @@ namespace KHFM_VF_Patch
             "Disney ne voulait pas que Mickey soit dans le jeu, ils ont finalement accepté, mais à la condition qu'il ne soit présent que dans une seule scène du jeu, Nomura à choisi de le mettre à la fin.",
             "La compositrice du jeu, Yoko Shimomura a également composé les musiques de Street Fighter 2, Legend of Mana, Xenoblade Chronicles et Final Fantasy XV.",
             "La musique One-Winged Angel présente dans le jeu vient de Final Fantasy VII et a été composée par Nobuo Uematsu.",
-            "Disney a été très furieux quand ils ont vu que Ariel puisse se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
+            "Disney a été très furieux quand ils ont vu que Ariel pouvait se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
             "Dans la Forteresse Oublié il y a une entrée pour un ascenseur près du sommet mais... pas d'ascenseur !",
             "L'Île du Destin dans la fin des mondes s'appelle Île du Souvenir.",
             "Quand on détruit la maison de Bourriquet elle apparaît dans une autre page !",
