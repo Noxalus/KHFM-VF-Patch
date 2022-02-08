@@ -4,7 +4,7 @@
 
 # Kingdom Hearts Final Mix PC - Patch voix Française
 
-Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix française de la version PS2 de 2002.
+Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix françaises de la version PS2 de 2002.
 
 ### Attention
 
