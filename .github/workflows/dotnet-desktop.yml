@@ -1,6 +1,7 @@
 name: GitHub Release
 on:
   push:
+    branches: [ ci ]
     tags:
       - 'v*.*'
 jobs:
@@ -27,9 +28,9 @@ jobs:
         shell: cmd
         run: call .\CI\Build.cmd
 
-      - name: Build Artifact
+      - name: Create Artifact
         shell: cmd
-        run: call .\CI\ArtifactBuild.cmd
+        run: call .\CI\CreateArtifact.cmd
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
