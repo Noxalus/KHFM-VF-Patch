@@ -188,23 +188,22 @@ namespace KHFM_VF_Patch
 
                     // Write original data
                     var originalDataSize = header.CompressedLength > -1 ? header.CompressedLength : header.DecompressedLength;
-                    asset.Stream.SetPosition(asset.DataOffset);
-                    var originalAssetData = asset.Stream.ReadBytes(originalDataSize);
-                    pkgStream.Write(originalAssetData);
+                    asset.Stream.CopyTo(pkgStream, asset.DataOffset, originalDataSize);
 
                     // Write remastered assets data
                     foreach (var remasteredAssetHeader in asset.RemasteredAssetHeaders)
                     {
                         var remasteredAssetSize = remasteredAssetHeader.Value.CompressedLength > -1 ? remasteredAssetHeader.Value.CompressedLength : remasteredAssetHeader.Value.DecompressedLength;
-                        var remasteredAssetData = asset.Stream.ReadBytes(remasteredAssetSize);
-                        pkgStream.Write(remasteredAssetData);
+                        var currentRemasteredAssetDataOffset = asset.Stream.Position;
 
-                        if (remasteredAssetData.Length % 0x10 != 0)
+                        asset.Stream.CopyTo(pkgStream, asset.Stream.Position, remasteredAssetSize);
+
+                        var remasteredAssetDataLength = asset.Stream.Position - currentRemasteredAssetDataOffset;
+
+                        if (remasteredAssetDataLength % 0x10 != 0)
                         {
-                            var alignmentSize = 16 - (remasteredAssetData.Length % 0x10);
-                            var alignmentBytes = asset.Stream.ReadBytes(alignmentSize);
-
-                            pkgStream.Write(alignmentBytes);
+                            var alignmentSize = 16 - ((int)remasteredAssetDataLength % 0x10);
+                            asset.Stream.CopyTo(pkgStream, asset.Stream.Position, alignmentSize);
                         }
                     }
                 }
