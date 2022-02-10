@@ -347,11 +347,11 @@ namespace KHFM_VF_Patch
                     Directory.Delete(patchesExtractionFolder, true);
                 //#endif
 
-                // Extract VF patch files
-                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
-
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
+
+                // Extract VF patch files
+                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
 
                 // Extract "Magic" to "Magie" fix patch
                 if (ShouldPatchMagic)
@@ -444,7 +444,7 @@ namespace KHFM_VF_Patch
         private async Task PatchVideos()
         {
             // If found, extract video patch
-            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)))
+            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)) || !string.IsNullOrEmpty(PROJECT_DIRECTORY))
             {
                 await ExtractPatch(KH1_PATCH_VIDEOS_ZIP_NAME);
 
@@ -570,22 +570,16 @@ namespace KHFM_VF_Patch
 
             PatchProgressionMessage.Text = $"Copie le contenu du dossier {source.Name} dans le dossier {destination.FullName}...";
 
-            foreach (DirectoryInfo dirInfo in source.GetDirectories("*", SearchOption.AllDirectories))
+            var files = source.GetFiles("*", SearchOption.AllDirectories);
+
+            for (int i = 0; i < files.Length; i++)
             {
-                string dirPath = dirInfo.FullName;
-                string outputPath = dirPath.Replace(source.FullName, destination.FullName);
+                string outputPath = files[i].DirectoryName.Replace(source.FullName, destination.FullName);
                 Directory.CreateDirectory(outputPath);
 
-                PatchProgressionMessage.Text = $"Copie du dossier {dirInfo.Name}...";
-
-                var files = dirInfo.GetFiles();
-
-                for (int i = 0; i < files.Length; i++)
-                {
-                    PatchProgressionMessage.Text = $"Copie du fichier {files[i].Name}...";
-                    await CopyToAsync(files[i].FullName, Path.Combine(outputPath, files[i].Name), progress, cancellationToken, bufferSize, false);
-                    progress.Report(new List<object>() { (long)i, (long)files.Length, files[i].Name });
-                }
+                PatchProgressionMessage.Text = $"Copie du fichier {files[i].Name}...";
+                await CopyToAsync(files[i].FullName, Path.Combine(outputPath, files[i].Name), progress, cancellationToken, bufferSize, false);
+                progress.Report(new List<object>() { (long)i, (long)files.Length, files[i].Name });
             }
         }
 
