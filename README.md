@@ -2,9 +2,9 @@
   <img src="KHFM-VF-Patch/resources/Images/logo.png" alt="logo" width="500"/></div>
 </p>
 
-# Kingdom Hearts Final Mix PC - Patch voix Française 
+# Kingdom Hearts Final Mix PC - Patch voix Française
 
-Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix française de la version PS2 de 2002.
+Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix françaises de la version PS2 de 2002.
 
 ### Attention
 
@@ -17,7 +17,7 @@ Assurez-vous donc bien d'avoir au moins **3.19 Go** d'espace libre sur le disque
 Pour commencer, merci à **Squaresoft** (maintenant *Square Enix*) pour avoir produit l'un des meilleurs jeux PS2 de l'histoire, mais également à toute l'équipe de traduction française de l'époque qui nous a fourni un doublage d'une très rare qualité.
 
 Ce patch a été rendu possible grâce aux travaux effectués par l'équipe de  [OpenKH](https://github.com/Xeeynamo/OpenKh) et sa communauté. J'aimerais remercier tout particulièrement [Xeeynamo](https://twitter.com/xeeynamo) qui a trouvé la "master key" permettant de déchiffrer les fichiers du jeu, puis  a écrit un outil pour les extraire, bravo à lui, il est vraiment à l'origine de tout !
-           
+
 Mais cela a également été possible grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu:
 - [Fotia](https://twitter.com/Fotia_13): qui s'est occupé seul de corriger l'ordre des voix en combat puis a réalisé les voix de la scène inédite à la version Final Mix qui n'a jamais été officiellement doublé en français, le tout en ré-utilisant des voix déjà présentes dans le jeu. Il a aussi conçu le logo actuel du patch.
 - [NOXYAN](https://twitter.com/Noxyan88): qui s'est occupé de remplacer les voix sur les vidéos pré-rendues et de tester l'entièreté du jeu plusieurs fois !

@@ -4,20 +4,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Path = System.IO.Path;
 
@@ -25,7 +20,9 @@ namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources/Patches");
+        private readonly string PROJECT_DIRECTORY;
+        private const string PATCH_FOLDER_RELATIVE_PATH = "Resources/Patches";
+        private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), PATCH_FOLDER_RELATIVE_PATH);
 
         private const int REQUIRED_RANDOM_QUOTES_COUNT = 3;
 
@@ -46,7 +43,7 @@ namespace KHFM_VF_Patch
             "Disney ne voulait pas que Mickey soit dans le jeu, ils ont finalement accepté, mais à la condition qu'il ne soit présent que dans une seule scène du jeu, Nomura à choisi de le mettre à la fin.",
             "La compositrice du jeu, Yoko Shimomura a également composé les musiques de Street Fighter 2, Legend of Mana, Xenoblade Chronicles et Final Fantasy XV.",
             "La musique One-Winged Angel présente dans le jeu vient de Final Fantasy VII et a été composée par Nobuo Uematsu.",
-            "Disney a été très furieux quand ils ont vu que Ariel puisse se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
+            "Disney a été très furieux quand ils ont vu que Ariel pouvait se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
             "Dans la Forteresse Oublié il y a une entrée pour un ascenseur près du sommet mais... pas d'ascenseur !",
             "L'Île du Destin dans la fin des mondes s'appelle Île du Souvenir.",
             "Quand on détruit la maison de Bourriquet elle apparaît dans une autre page !",
@@ -120,6 +117,15 @@ namespace KHFM_VF_Patch
 
         public MainWindow()
         {
+            // Determine if this program is executed from a build or from Visual Studio
+            var assemblyPath = Assembly.GetEntryAssembly().Location;
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+
+            if (assemblyDirectory.EndsWith("net5.0-windows"))
+            {
+                PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            }
+
             InitializeComponent();
 
             DataContext = this;
@@ -301,8 +307,6 @@ namespace KHFM_VF_Patch
 
         private bool CheckGameFolder(string folder)
         {
-            var directoryName = Path.GetFileName(folder);
-
             // Check PKG/HED files
             foreach (var requiredFile in REQUIRED_FILES)
             {
@@ -343,11 +347,11 @@ namespace KHFM_VF_Patch
                     Directory.Delete(patchesExtractionFolder, true);
                 //#endif
 
-                // Extract VF patch files
-                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
-
                 // Update videos if the corresponding patch is found
                 await PatchVideos();
+
+                // Extract VF patch files
+                await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
 
                 // Extract "Magic" to "Magie" fix patch
                 if (ShouldPatchMagic)
@@ -440,7 +444,7 @@ namespace KHFM_VF_Patch
         private async Task PatchVideos()
         {
             // If found, extract video patch
-            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)))
+            if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)) || !string.IsNullOrEmpty(PROJECT_DIRECTORY))
             {
                 await ExtractPatch(KH1_PATCH_VIDEOS_ZIP_NAME);
 
@@ -523,17 +527,30 @@ namespace KHFM_VF_Patch
             if (!Directory.Exists(extractionFolder))
                 Directory.CreateDirectory(extractionFolder);
 
-            using (ZipFile zip = ZipFile.Read(patchFile))
+            // The .patch file is not found, it could already be decompressed (if we are launching this program from VS for example)
+            if (!File.Exists(patchFile))
             {
-                // Make sure to extract patch files only if necessary
-                var alreadyExtractedFiles = Directory.GetFiles(extractionFolder, "*.*", SearchOption.AllDirectories);
-                var alreadyExtractedFolders = Directory.GetDirectories(extractionFolder, "*.*", SearchOption.AllDirectories);
-
-                if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
+                // If we are in Visual Studio, we want to copy the patch files to the destination folder
+                if (!string.IsNullOrEmpty(PROJECT_DIRECTORY))
                 {
-                    PatchProgressionMessage.Text = $"Extraction des fichiers de {patchName}...";
-                    zip.ExtractProgress += new EventHandler<ExtractProgressEventArgs>(ZipExtractProgress);
-                    await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+                    var patchFolder = Path.Combine(PROJECT_DIRECTORY, PATCH_FOLDER_RELATIVE_PATH, Path.GetFileNameWithoutExtension(patchName));
+                    await CopyFolderContentToAsync(patchFolder, extractionFolder, _progress, default, 0x100000);
+                }
+            }
+            else
+            {
+                using (ZipFile zip = ZipFile.Read(patchFile))
+                {
+                    // Make sure to extract patch files only if necessary
+                    var alreadyExtractedFiles = Directory.GetFiles(extractionFolder, "*.*", SearchOption.AllDirectories);
+                    var alreadyExtractedFolders = Directory.GetDirectories(extractionFolder, "*.*", SearchOption.AllDirectories);
+
+                    if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
+                    {
+                        PatchProgressionMessage.Text = $"Extraction des fichiers de {patchName}...";
+                        zip.ExtractProgress += ZipExtractProgress;
+                        await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+                    }
                 }
             }
         }
@@ -546,7 +563,27 @@ namespace KHFM_VF_Patch
             }
         }
 
-        public async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
+        public async Task CopyFolderContentToAsync(string sourceFolder, string destinationFolder, IProgress<List<object>> progress, CancellationToken cancellationToken = default(CancellationToken), int bufferSize = 0x1000)
+        {
+            var source = new DirectoryInfo(sourceFolder);
+            var destination = new DirectoryInfo(destinationFolder);
+
+            PatchProgressionMessage.Text = $"Copie le contenu du dossier {source.Name} dans le dossier {destination.FullName}...";
+
+            var files = source.GetFiles("*", SearchOption.AllDirectories);
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                string outputPath = files[i].DirectoryName.Replace(source.FullName, destination.FullName);
+                Directory.CreateDirectory(outputPath);
+
+                PatchProgressionMessage.Text = $"Copie du fichier {files[i].Name}...";
+                await CopyToAsync(files[i].FullName, Path.Combine(outputPath, files[i].Name), progress, cancellationToken, bufferSize, false);
+                progress.Report(new List<object>() { (long)i, (long)files.Length, files[i].Name });
+            }
+        }
+
+        public async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default, int bufferSize = 0x1000, bool updateProgress = true)
         {
             var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
             var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
@@ -559,7 +596,11 @@ namespace KHFM_VF_Patch
                 await destinationStream.WriteAsync(buffer, 0, bytesRead, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 totalRead += bytesRead;
-                progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
+
+                if (updateProgress)
+                {
+                    progress.Report(new List<object>() { totalRead, sourceStream.Length, Path.GetFileName(sourceFile) });
+                }
             }
 
             sourceStream.Close();
