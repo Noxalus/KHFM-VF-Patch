@@ -12,6 +12,7 @@ powershell Compress-7Zip "Resources\Patches\KH1FM-Magic-FR" -ArchiveFileName "bi
 powershell Compress-7Zip "Resources\Patches\KH1FM-Stranger" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\Patches\KH1FM-Stranger.patch" -Format Zip
 powershell Compress-7Zip "Resources\Patches\KH1FM-Textures" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\Patches\KH1FM-Textures.patch" -Format Zip
 powershell Compress-7Zip "Resources\Patches\KH1FM-Voices" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\Patches\KH1FM-Voices.patch" -Format Zip
+powershell Compress-7Zip "Resources\Patches\KH1FM-Videos" -ArchiveFileName "bin\x86\Release\net5.0-windows\Resources\Patches\KH1FM-Videos.patch" -Format Zip
 
 @REM Zip all patch files to upload them for release
 powershell Compress-7Zip "bin\x86\Release\net5.0-windows" -ArchiveFileName "KHFM-VF-Patch.zip" -Format Zip
