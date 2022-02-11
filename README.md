@@ -9,7 +9,7 @@ Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les v
 https://user-images.githubusercontent.com/1321964/153475214-48c44bb3-9ba4-40d2-b624-f6945e6eb96d.mp4
 
 <div align="center">
-  <a href="https://github.com/Noxalus/KHFM-VF-Patch/releases/download/1.2/KHFM-VF-Patch-1.2.zip">
+  <a href="https://github.com/Noxalus/KHFM-VF-Patch/releases/latest">
     <b>Télécharger le patch</b>
   </a>
 </div>
