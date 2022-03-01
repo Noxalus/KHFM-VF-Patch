@@ -14,6 +14,13 @@ https://user-images.githubusercontent.com/1321964/153475214-48c44bb3-9ba4-40d2-b
   </a>
 </div>
 
+### Installation de .NET 5.0
+
+Si vous avez ce message en lançant le patch:
+> To run this application, you must install .NET . Would you like to download it now?
+
+Vous devez installer .NET 5.0 (x86) trouvable sur le site de Microsoft: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-5.0.14-windows-x86-installer
+
 ### Attention
 
 Le patch va sauvegarder les fichiers originaux pour éviter que vous ne deviez re-télécharger le jeu complet si un problème se produit.
