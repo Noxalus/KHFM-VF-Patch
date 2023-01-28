@@ -54,15 +54,16 @@
                 </TextBlock>
                 <Image Source="Resources/Images/TexturePatch.png" Margin="0,-20,0,0" Height="100" HorizontalAlignment="Right" />
             </DockPanel>
-            
+
             <DockPanel Margin="0,0,0,0">
             </DockPanel>
-            <DockPanel>
+
+            <DockPanel x:Name="SaveOriginalFilesCheckbox">
                 <CheckBox x:Name="SaveOriginalFilesOption" Content="Sauvegarder les fichiers originaux" FontWeight="Bold" IsChecked="{Binding ElementName=PatchWindow, Path=SaveOriginalFilesOption}" />
             </DockPanel>
-            <DockPanel Margin="20,0,0,0">
+            <DockPanel Margin="20,0,0,0" x:Name="SaveOriginalFilesDescription">
                 <TextBlock TextWrapping="Wrap" FontSize="10">Ce patch va modifier la majorité des fichiers du jeu, il est donc fortement conseillé de sauvegarder les fichiers originaux pour pouvoir les réstituer en cas de problème. En cochant cette option, les fichiers impactés
-                seront automatiquement sauvegardés. Le problème est que cela nécessite d'avoir au moins 3 Go d'espace libre sur le disque où a été installé le jeu. Si vous n'avez pas assez d'espace, vous pouvez décocher cette option.</TextBlock>
+                    seront automatiquement sauvegardés. Le problème est que cela nécessite d'avoir au moins 3 Go d'espace libre sur le disque où a été installé le jeu. Si vous n'avez pas assez d'espace, vous pouvez décocher cette option.</TextBlock>
             </DockPanel>
         </StackPanel>
 
@@ -71,6 +72,7 @@
              Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. <LineBreak />
              Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu.</Italic>
         </TextBlock>
+        <Button Grid.Column="0" Grid.Row="3" x:Name="IgnoreSaveButton" Width="450" Height="60" Content="Ignorer la sauvegarde" Click="IgnoreSaveButtonClick" Visibility="Visible" Background="#FFD32626" Foreground="White" FontWeight="Bold" FontSize="20"/>
         <TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct et est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>
         <TextBlock x:Name="PatchProgressionMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" Foreground="#FF56BF5F">[Progression du patch]</TextBlock>
         <ProgressBar x:Name="PatchProgressBar"  Grid.Column="0" Grid.Row="2" Minimum="0" Maximum="100" Height="42" Value="{Binding PatchState}" Visibility="Visible" />

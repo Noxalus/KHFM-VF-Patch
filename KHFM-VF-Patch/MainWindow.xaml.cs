@@ -180,14 +180,17 @@ namespace KHFM_VF_Patch
 
             RandomQuotes.Visibility = Visibility.Collapsed;
 
-            if (CheckRemainingSpace(_selectedGameFolder))
+            if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
             {
                 GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
                 BrowseButton.Visibility = Visibility.Collapsed;
+                IgnoreSaveButton.Visibility = Visibility.Collapsed;
                 PatchButton.Visibility = Visibility.Visible;
                 GameFoundMessage.Visibility = Visibility.Visible;
                 Credits.Visibility = Visibility.Collapsed;
                 PatchOptions.Visibility = Visibility.Visible;
+                SaveOriginalFilesCheckbox.Visibility = ShouldSaveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
+                SaveOriginalFilesDescription.Visibility = ShouldSaveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
                 ImageHeight.Height = new GridLength(75);
             }
             else
@@ -197,6 +200,8 @@ namespace KHFM_VF_Patch
                 GameNotFoundWarningMessage.Text = "Attention: ce patch s'assure de sauvegarder tous les fichiers originaux avant de les modifier afin que votre jeu ne soit pas cassé s'il y a un problème pendant le processus. " +
                     "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
                     "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
+                BrowseButton.Visibility = Visibility.Collapsed;
+                IgnoreSaveButton.Visibility = Visibility.Visible;
             }
         }
 
@@ -297,6 +302,12 @@ namespace KHFM_VF_Patch
                     }
                 }
             }
+        }
+
+        private void IgnoreSaveButtonClick(object sender, RoutedEventArgs e)
+        {
+            ShouldSaveOriginalFiles = false;
+            ReadyToPatchState();
         }
 
         private void PatchGameButtonClick(object sender, RoutedEventArgs e)
