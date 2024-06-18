@@ -62,15 +62,16 @@ namespace KHFM_VF_Patch
         private const string KH1_OPENING_VIDEO_FILENAME = "OPN.mp4";
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
 
-        private const string DEFAULT_GAME_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
+        private const string DEFAULT_EPIC_GAMES_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
+        private const string DEFAULT_STEAM_FOLDER = @"C:\Program Files (x86)\Steam\steamapps\common\KINGDOM HEARTS -HD 1.5+2.5 ReMIX-";
         private const string SAVE_FOLDER_NAME = "Patch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
-        private static readonly List<string> REQUIRED_FILES = new List<string>()
+        private static readonly List<string> REQUIRED_FILE_NAMES = new List<string>()
         {
-            "Image/en/kh1_first.pkg", "Image/en/kh1_first.hed",
-            "Image/en/kh1_third.pkg", "Image/en/kh1_third.hed",
-            "Image/en/kh1_fourth.pkg", "Image/en/kh1_fourth.hed",
-            "Image/en/kh1_fifth.pkg", "Image/en/kh1_fifth.hed",
+            "kh1_first.pkg", "kh1_first.hed",
+            "kh1_third.pkg", "kh1_third.hed",
+            "kh1_fourth.pkg", "kh1_fourth.hed",
+            "kh1_fifth.pkg", "kh1_fifth.hed",
         };
 
         private Progress<List<object>> _progress;
@@ -79,6 +80,7 @@ namespace KHFM_VF_Patch
         private float _patchState = 0f;
         private string _selectedGameFolder;
         private int _randomQuotesCounter = 0;
+        private bool isSteamInstall = false;
 
         public float PatchState
         {
@@ -144,9 +146,14 @@ namespace KHFM_VF_Patch
                 //Debug.WriteLine("{1} {0:N2}%", progress, filename);
             });
 
-            if (CheckGameFolder(DEFAULT_GAME_FOLDER))
+            if (CheckGameFolder(DEFAULT_EPIC_GAMES_FOLDER))
             {
-                _selectedGameFolder = DEFAULT_GAME_FOLDER;
+                _selectedGameFolder = DEFAULT_EPIC_GAMES_FOLDER;
+                ReadyToPatchState();
+            }
+            else if (CheckGameFolder(DEFAULT_STEAM_FOLDER))
+            {
+                _selectedGameFolder = DEFAULT_STEAM_FOLDER;
                 ReadyToPatchState();
             }
             else
@@ -180,14 +187,17 @@ namespace KHFM_VF_Patch
 
             RandomQuotes.Visibility = Visibility.Collapsed;
 
-            if (CheckRemainingSpace(_selectedGameFolder))
+            if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
             {
                 GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
                 BrowseButton.Visibility = Visibility.Collapsed;
+                IgnoreSaveButton.Visibility = Visibility.Collapsed;
                 PatchButton.Visibility = Visibility.Visible;
                 GameFoundMessage.Visibility = Visibility.Visible;
                 Credits.Visibility = Visibility.Collapsed;
                 PatchOptions.Visibility = Visibility.Visible;
+                SaveOriginalFilesCheckbox.Visibility = ShouldSaveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
+                SaveOriginalFilesDescription.Visibility = ShouldSaveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
                 ImageHeight.Height = new GridLength(75);
             }
             else
@@ -197,6 +207,8 @@ namespace KHFM_VF_Patch
                 GameNotFoundWarningMessage.Text = "Attention: ce patch s'assure de sauvegarder tous les fichiers originaux avant de les modifier afin que votre jeu ne soit pas cassé s'il y a un problème pendant le processus. " +
                     "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
                     "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
+                BrowseButton.Visibility = Visibility.Collapsed;
+                IgnoreSaveButton.Visibility = Visibility.Visible;
             }
         }
 
@@ -289,7 +301,7 @@ namespace KHFM_VF_Patch
 
                         GameNotFoundWarningMessage.Text =
                             "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
-                            "Il doit s'agir du dossier dans lequel l'Epic Game Store a téléchargé les fichiers du jeu.\n" +
+                            "Il doit s'agir du dossier dans lequel l'Epic Game Store ou Steam a téléchargé les fichiers du jeu.\n" +
                             $"Le dossier que vous avez donné: ";
                         GameNotFoundWarningMessage.Inlines.Add(new Italic(new Run($"\"{dialog.SelectedPath}\"")));
 
@@ -297,6 +309,25 @@ namespace KHFM_VF_Patch
                     }
                 }
             }
+        }
+
+        private List<string> GetRequiredFiles()
+        {
+            var pathname = isSteamInstall ? "dt/" : "en/";
+            var filepaths = new List<string>();
+
+            foreach (var filename in REQUIRED_FILE_NAMES)
+            {
+                filepaths.Add("Image/" + pathname + filename);
+            }
+         
+            return filepaths;
+        }
+
+        private void IgnoreSaveButtonClick(object sender, RoutedEventArgs e)
+        {
+            ShouldSaveOriginalFiles = false;
+            ReadyToPatchState();
         }
 
         private void PatchGameButtonClick(object sender, RoutedEventArgs e)
@@ -307,8 +338,12 @@ namespace KHFM_VF_Patch
 
         private bool CheckGameFolder(string folder)
         {
+            // Check if install is a Steam install
+            var steamPath = Path.Combine(folder, "STEAM");
+            isSteamInstall = Directory.Exists(steamPath);
+
             // Check PKG/HED files
-            foreach (var requiredFile in REQUIRED_FILES)
+            foreach (var requiredFile in GetRequiredFiles())
             {
                 var completePath = Path.Combine(folder, requiredFile);
 
@@ -385,7 +420,7 @@ namespace KHFM_VF_Patch
 
                 Directory.CreateDirectory(patchedFilesBaseFolder);
 
-                foreach (var requiredFile in REQUIRED_FILES)
+                foreach (var requiredFile in GetRequiredFiles())
                 {
                     var pkgFile = Path.Combine(gameFolder, requiredFile);
                     var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
@@ -450,7 +485,8 @@ namespace KHFM_VF_Patch
 
                 var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
                 var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
-                var gameVideosFolder = Path.Combine(_selectedGameFolder, @"EPIC\en\KH1Movie");
+                var movieFolderPath = isSteamInstall ? @"STEAM\dt\KH1Movie" : @"EPIC\en\KH1Movie";
+                var gameVideosFolder = Path.Combine(_selectedGameFolder, movieFolderPath);
                 var originalOpeningVideoFile = Path.Combine(gameVideosFolder, KH1_OPENING_VIDEO_FILENAME);
                 var originalEndingVideoFile = Path.Combine(gameVideosFolder, KH1_ENDING_VIDEO_FILENAME);
 
