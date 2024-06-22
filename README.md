@@ -14,6 +14,10 @@ https://user-images.githubusercontent.com/1321964/153475214-48c44bb3-9ba4-40d2-b
   </a>
 </div>
 
+### Est-ce que le patch est compatible Steam Deck ?
+
+Oui, vous pouvez jouer avec les voix françaises sur le Steam Deck, vous trouverez la marche à suivre [ici](https://github.com/Noxalus/KHFM-VF-Patch/wiki/Installation-du-patch-sur-Steam-Deck).
+
 ### Installation de .NET 8.0
 
 Si vous avez ce message en lançant le patch:
@@ -42,3 +46,9 @@ Mais cela a également été possible grâce à une poignée de français déter
 - [DylanCa](https://github.com/DylanCa): pour avoir porté le patch pour la version Steam
 
 De mon côté ([Noxalus]("https://twitter.com/Noxalus")) j'ai initié ce projet 2 semaines avant la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.
+
+Si vous appréciez mon travail, vous pouvez toujours me remercier en m'offrant une pizza ! :p
+
+<p align="center">
+  <a href="https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR"><img src="KHFM-VF-Patch/Resources/Images/donate.png" alt="logo" width="200"/></href>
+</p>
