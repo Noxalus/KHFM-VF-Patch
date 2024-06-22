@@ -14,12 +14,12 @@ jobs:
         run: Install-Module 7Zip4PowerShell -Force -Verbose
 
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           lfs: 'true'
 
       - name: Get the version
-        uses: kzrnm/get-net-sdk-project-versions-action@v1
+        uses: kzrnm/get-net-sdk-project-versions-action@v2
         id: get-version
         with:
           proj-path: KHFM-VF-Patch/KHFM-VF-Patch.csproj
@@ -33,10 +33,10 @@ jobs:
         run: call .\CI\CreateArtifact.cmd
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: KHFM-VF-Patch
-          path: .\KHFM-VF-Patch\bin\x86\Release\net5.0-windows
+          path: .\KHFM-VF-Patch\bin\x86\Release\net8.0-windows7.0
 
       - name: Create Release
         id: create_release
