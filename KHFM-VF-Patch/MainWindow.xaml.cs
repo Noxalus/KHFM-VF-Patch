@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -19,13 +20,21 @@ namespace KHFM_VF_Patch
 {
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        #region Events
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        #endregion
+
+        #region Constants
+
         private readonly string PROJECT_DIRECTORY;
         private const string PATCH_FOLDER_RELATIVE_PATH = "Resources/Patches";
         private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), PATCH_FOLDER_RELATIVE_PATH);
         private const int REQUIRED_RANDOM_QUOTES_COUNT = 3;
 
-        private static readonly List<string> RANDOM_QUOTES = new()
-        {
+        private static readonly List<string> RANDOM_QUOTES =
+        [
             "Cela pourrait être un peu long, je vous conseille d'aller chercher un café...",
             "Sinon ça a été votre journée ?",
             "Vous êtes toujours là ? Alors attendez, je vous prépare de quoi vous occuper...",
@@ -45,7 +54,7 @@ namespace KHFM_VF_Patch
             "L'Île du Destin dans la fin des mondes s'appelle Île du Souvenir.",
             "Quand on détruit la maison de Bourriquet elle apparaît dans une autre page !",
             "Dans le monde des merveilles on peut voir le four allumé même après avoir grandit !",
-        };
+        ];
 
         private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
         private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
@@ -62,21 +71,27 @@ namespace KHFM_VF_Patch
         private const string SAVE_FOLDER_NAME = "Patch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
 
-        private static readonly List<string> REQUIRED_FILE_NAMES = new()
-        {
+        private static readonly List<string> REQUIRED_FILE_NAMES =
+        [
             "kh1_first.pkg", "kh1_first.hed",
             "kh1_third.pkg", "kh1_third.hed",
             "kh1_fourth.pkg", "kh1_fourth.hed",
             "kh1_fifth.pkg", "kh1_fifth.hed",
-        };
+        ];
+
+        #endregion
+
+        #region Private fields
 
         private readonly Progress<List<object>> _progress;
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private float _patchState;
         private string _selectedGameFolder;
         private int _randomQuotesCounter;
         private bool _isSteamInstall;
+
+        #endregion
+
+        #region Properties
 
         public float PatchState
         {
@@ -115,15 +130,19 @@ namespace KHFM_VF_Patch
         public static readonly DependencyProperty ShouldSaveOriginalFilesProperty =
             DependencyProperty.Register(nameof(ShouldSaveOriginalFiles), typeof(bool), typeof(MainWindow), new UIPropertyMetadata(true));
 
+        #endregion
+
+        #region Constructor
+
         public MainWindow()
         {
             // Determine if this program is executed from a build or from Visual Studio
             var assemblyPath = Assembly.GetEntryAssembly().Location;
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
-            if (assemblyDirectory.Equals("net8.0-windows7.0"))
+            if (assemblyDirectory.EndsWith("net8.0-windows7.0"))
             {
-                PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+                PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
             }
 
             InitializeComponent();
@@ -140,17 +159,20 @@ namespace KHFM_VF_Patch
                 PatchState = (float)((double)copiedSize / totalFileSize * 100);
             });
 
-            if (CheckGameFolder(DEFAULT_EPIC_GAMES_FOLDER))
+            // Check default installation folder for Epic Games
+            if (CheckGameFolder(DEFAULT_EPIC_GAMES_FOLDER, false))
             {
                 _selectedGameFolder = DEFAULT_EPIC_GAMES_FOLDER;
                 ReadyToPatchState();
             }
-            else if (CheckGameFolder(DEFAULT_STEAM_FOLDER))
+            // Check default installation folder for Steam
+            else if (CheckGameFolder(DEFAULT_STEAM_FOLDER, true))
             {
                 _selectedGameFolder = DEFAULT_STEAM_FOLDER;
                 ReadyToPatchState();
             }
-            else if (CheckGameFolder(DEFAULT_STEAM_DECK_FOLDER))
+            // Check default installation folder for the Steam Deck
+            else if (CheckGameFolder(DEFAULT_STEAM_DECK_FOLDER, true))
             {
                 _selectedGameFolder = DEFAULT_STEAM_DECK_FOLDER;
                 ReadyToPatchState();
@@ -161,37 +183,9 @@ namespace KHFM_VF_Patch
             }
         }
 
-        private void SearchGameFolderState()
-        {
-            SetUIVisibility(gameNotFound: true, browse: true);
-        }
+        #endregion
 
-        private void ReadyToPatchState()
-        {
-            // TODO(bth): Show a button to unpatch the game
-
-            RandomQuotes.Visibility = Visibility.Collapsed;
-
-            if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
-            {
-                SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: ShouldSaveOriginalFiles);
-                ImageHeight.Height = new GridLength(75);
-            }
-            else
-            {
-                GameNotFoundWarningMessage.Text = "Attention: ce patch s'assure de sauvegarder tous les fichiers originaux avant de les modifier afin que votre jeu ne soit pas cassé s'il y a un problème pendant le processus. " +
-                    "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
-                    "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
-                SetUIVisibility(gameNotFound: true, ignoreSave: true);
-            }
-        }
-
-        private void PatchingState()
-        {
-            SetUIVisibility(patchProgress: true, randomQuotes: true);
-            ImageHeight.Height = new GridLength(250);
-            StartRandomQuotes();
-        }
+        #region Random Quotes
 
         private void StartRandomQuotes()
         {
@@ -231,19 +225,56 @@ namespace KHFM_VF_Patch
             _randomQuotesCounter++;
         }
 
+        #endregion
+
+        #region States
+
+        private void SearchGameFolderState()
+        {
+            SetUIVisibility(gameNotFound: true, browse: true);
+        }
+
+        private void ReadyToPatchState()
+        {
+            // TODO(bth): Show a button to unpatch the game
+
+            if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
+            {
+                _isSteamInstall = true;
+
+                SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: ShouldSaveOriginalFiles);
+                ImageHeight.Height = new GridLength(75);
+            }
+            else
+            {
+                GameNotFoundWarningMessage.Text = "Attention: ce patch s'assure de sauvegarder tous les fichiers originaux avant de les modifier afin que votre jeu ne soit pas cassé s'il y a un problème pendant le processus. " +
+                    "Mais ces fichiers sont gros, 4 Go en tout et il semblerait que vous n'ayez pas suffisament d'espace pour pouvoir effectuer cette sauvegarde correctement." +
+                    "Assurez-vous donc d'avoir suffisament d'espace libre avant de patcher votre jeu !";
+
+                SetUIVisibility(gameNotFound: true, ignoreSave: true);
+            }
+        }
+
+        private void PatchingState()
+        {
+            SetUIVisibility(patchProgress: true, patchProgressBar: true, randomQuotes: true);
+            ImageHeight.Height = new GridLength(250);
+            StartRandomQuotes();
+        }
+
         private void FinishedState()
         {
-            GameNotFoundWarningMessage.Visibility = Visibility.Collapsed;
             PatchProgressionMessage.Text = "Votre jeu a correctement été patché ! Profitez bien des voix françaises ;)";
             PatchProgressionMessage.FontWeight = FontWeights.Bold;
-            PatchProgressionMessage.Visibility = Visibility.Visible;
-            PatchProgressBar.Visibility = Visibility.Collapsed;
-            Credits.Visibility = Visibility.Visible;
+
+            SetUIVisibility(patchProgress: true, credits: true);
+
             ImageHeight.Height = new GridLength(0);
-            BrowseButton.Visibility = Visibility.Collapsed;
-            PatchOptions.Visibility = Visibility.Collapsed;
-            RandomQuotes.Visibility = Visibility.Collapsed;
         }
+
+        #endregion
+
+        #region Buttons
 
         private void BrowseFolderButtonClick(object sender, RoutedEventArgs e)
         {
@@ -252,9 +283,13 @@ namespace KHFM_VF_Patch
             {
                 Debug.WriteLine($"Selected: {dialog.SelectedPath}");
 
-                if (CheckGameFolder(dialog.SelectedPath))
+                // Check if install is a Steam install
+                var isSteamInstall = Directory.Exists(Path.Combine(dialog.SelectedPath, "STEAM"));
+
+                if (CheckGameFolder(dialog.SelectedPath, isSteamInstall))
                 {
                     _selectedGameFolder = dialog.SelectedPath;
+                    _isSteamInstall = isSteamInstall;
                     ReadyToPatchState();
                 }
                 else
@@ -262,29 +297,10 @@ namespace KHFM_VF_Patch
                     GameNotFoundWarningMessage.Text =
                         "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
                         "Il doit s'agir du dossier dans lequel l'Epic Game Store ou Steam a téléchargé les fichiers du jeu.\n" +
-                        $"Le dossier que vous avez donné: ";
+                        "Le dossier que vous avez donné: ";
                     GameNotFoundWarningMessage.Inlines.Add(new Italic(new Run($"\"{dialog.SelectedPath}\"")));
                 }
             }
-        }
-
-        private List<string> GetRequiredFiles()
-        {
-            var pathname = _isSteamInstall ? "dt/" : "en/";
-            var filepaths = new List<string>();
-
-            foreach (var filename in REQUIRED_FILE_NAMES)
-            {
-                filepaths.Add($"Image/{pathname}{filename}");
-            }
-
-            return filepaths;
-        }
-
-        private void IgnoreSaveButtonClick(object sender, RoutedEventArgs e)
-        {
-            ShouldSaveOriginalFiles = false;
-            ReadyToPatchState();
         }
 
         private void PatchGameButtonClick(object sender, RoutedEventArgs e)
@@ -293,38 +309,48 @@ namespace KHFM_VF_Patch
             _ = Patch(_selectedGameFolder);
         }
 
-        private bool CheckGameFolder(string folder)
+        private void IgnoreSaveButtonClick(object sender, RoutedEventArgs e)
         {
-            // Check if install is a Steam install
-            _isSteamInstall = Directory.Exists(Path.Combine(folder, "STEAM"));
+            ShouldSaveOriginalFiles = false;
+            ReadyToPatchState();
+        }
 
-            // Check PKG/HED files
-            foreach (var requiredFile in GetRequiredFiles())
+        #endregion
+
+        #region Patch
+
+        private async Task ExtractPatch(string patchName)
+        {
+            var patchFile = Path.Combine(PATCH_FOLDER, patchName);
+            var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
+
+            if (!Directory.Exists(extractionFolder))
+                Directory.CreateDirectory(extractionFolder);
+
+            // The .patch file is not found, it could already be decompressed (if we are launching this program from VS for example)
+            if (!File.Exists(patchFile))
             {
-                var completePath = Path.Combine(folder, requiredFile);
-
-                if (!File.Exists(completePath))
+                // If we are in Visual Studio, we want to copy the patch files to the destination folder
+                if (!string.IsNullOrEmpty(PROJECT_DIRECTORY))
                 {
-                    return false;
+                    var patchFolder = Path.Combine(PROJECT_DIRECTORY, PATCH_FOLDER_RELATIVE_PATH, Path.GetFileNameWithoutExtension(patchName));
+                    await CopyFolderContentToAsync(patchFolder, extractionFolder, _progress, default, 0x100000);
                 }
             }
+            else
+            {
+                using var zip = ZipFile.Read(patchFile);
+                // Make sure to extract patch files only if necessary
+                var alreadyExtractedFiles = Directory.GetFiles(extractionFolder, "*.*", SearchOption.AllDirectories);
+                var alreadyExtractedFolders = Directory.GetDirectories(extractionFolder, "*.*", SearchOption.AllDirectories);
 
-            return true;
-        }
-
-        private bool CheckRemainingSpace(string folder)
-        {
-            // Required at least 4GB to save original files
-            return GetFreeSpace(folder) > 4e+9;
-        }
-
-        private long GetFreeSpace(string folder)
-        {
-            var folderInfo = new FileInfo(folder);
-            DriveInfo drive = new DriveInfo(folderInfo.Directory.Root.FullName);
-
-            // Required at least 4GB to save original files
-            return drive.AvailableFreeSpace;
+                if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
+                {
+                    PatchProgressionMessage.Text = $"Extraction des fichiers de {patchName}...";
+                    zip.ExtractProgress += ZipExtractProgress;
+                    await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
+                }
+            }
         }
 
         private async Task Patch(string gameFolder)
@@ -365,7 +391,7 @@ namespace KHFM_VF_Patch
                     Directory.Delete(patchedFilesBaseFolder, true);
                 Directory.CreateDirectory(patchedFilesBaseFolder);
 
-                foreach (var requiredFile in GetRequiredFiles())
+                foreach (var requiredFile in GetRequiredFiles(_isSteamInstall))
                 {
                     var pkgFile = Path.Combine(gameFolder, requiredFile);
                     var patchFolder = Path.Combine(patchesExtractionFolder, Path.GetFileNameWithoutExtension(pkgFile));
@@ -413,6 +439,9 @@ namespace KHFM_VF_Patch
             {
                 PatchProgressionMessage.Foreground = Brushes.Red;
                 PatchProgressionMessage.Text = $"Une erreur s'est produite: {e.Message}";
+
+                SetUIVisibility(patchProgress: true);
+
                 Debug.WriteLine(e.Message);
             }
         }
@@ -458,6 +487,54 @@ namespace KHFM_VF_Patch
             }
         }
 
+        #endregion
+
+        #region Utils
+
+        private List<string> GetRequiredFiles(bool isSteamInstall)
+        {
+            var pathname = isSteamInstall ? "dt/" : "en/";
+            var filepaths = new List<string>();
+
+            foreach (var filename in REQUIRED_FILE_NAMES)
+            {
+                filepaths.Add($"Image/{pathname}{filename}");
+            }
+
+            return filepaths;
+        }
+
+        private bool CheckGameFolder(string folder, bool isSteamInstall)
+        {
+            // Check PKG/HED files
+            foreach (var requiredFile in GetRequiredFiles(isSteamInstall))
+            {
+                var completePath = Path.Combine(folder, requiredFile);
+
+                if (!File.Exists(completePath))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CheckRemainingSpace(string folder)
+        {
+            // Required at least 4GB to save original files
+            return GetFreeSpace(folder) > 4e+9;
+        }
+
+        private long GetFreeSpace(string folder)
+        {
+            var folderInfo = new FileInfo(folder);
+            var drive = new DriveInfo(folderInfo.Directory.Root.FullName);
+
+            // Required at least 4GB to save original files
+            return drive.AvailableFreeSpace;
+        }
+
         // fileToSaveOrRestore folder should be relative to game folder
         private async Task SaveOrRestore(string gameFolder, string fileToSaveOrRestore)
         {
@@ -494,40 +571,6 @@ namespace KHFM_VF_Patch
             }
 
             await CopyToAsync(source, destination, _progress, default, 0x100000);
-        }
-
-        private async Task ExtractPatch(string patchName)
-        {
-            var patchFile = Path.Combine(PATCH_FOLDER, patchName);
-            var extractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
-
-            if (!Directory.Exists(extractionFolder))
-                Directory.CreateDirectory(extractionFolder);
-
-            // The .patch file is not found, it could already be decompressed (if we are launching this program from VS for example)
-            if (!File.Exists(patchFile))
-            {
-                // If we are in Visual Studio, we want to copy the patch files to the destination folder
-                if (!string.IsNullOrEmpty(PROJECT_DIRECTORY))
-                {
-                    var patchFolder = Path.Combine(PROJECT_DIRECTORY, PATCH_FOLDER_RELATIVE_PATH, Path.GetFileNameWithoutExtension(patchName));
-                    await CopyFolderContentToAsync(patchFolder, extractionFolder, _progress, default, 0x100000);
-                }
-            }
-            else
-            {
-                using var zip = ZipFile.Read(patchFile);
-                // Make sure to extract patch files only if necessary
-                var alreadyExtractedFiles = Directory.GetFiles(extractionFolder, "*.*", SearchOption.AllDirectories);
-                var alreadyExtractedFolders = Directory.GetDirectories(extractionFolder, "*.*", SearchOption.AllDirectories);
-
-                if (alreadyExtractedFiles.Length + alreadyExtractedFolders.Length != zip.Count)
-                {
-                    PatchProgressionMessage.Text = $"Extraction des fichiers de {patchName}...";
-                    zip.ExtractProgress += ZipExtractProgress;
-                    await Task.Run(() => zip.ExtractAll(extractionFolder, ExtractExistingFileAction.OverwriteSilently));
-                }
-            }
         }
 
         private void ZipExtractProgress(object sender, ExtractProgressEventArgs eventData)
@@ -596,15 +639,16 @@ namespace KHFM_VF_Patch
         }
 
         private void SetUIVisibility(
-            bool gameNotFound = false, 
-            bool browse = false, 
-            bool patch = false, 
+            bool gameNotFound = false,
+            bool browse = false,
+            bool patch = false,
             bool gameFound = false,
-            bool patchProgress = false, 
-            bool credits = false, 
-            bool patchOptions = false, 
+            bool patchProgress = false,
+            bool patchProgressBar = false,
+            bool credits = false,
+            bool patchOptions = false,
             bool randomQuotes = false,
-            bool ignoreSave = false, 
+            bool ignoreSave = false,
             bool saveOriginalFiles = false)
         {
             GameNotFoundWarningMessage.Visibility = gameNotFound ? Visibility.Visible : Visibility.Collapsed;
@@ -612,7 +656,7 @@ namespace KHFM_VF_Patch
             PatchButton.Visibility = patch ? Visibility.Visible : Visibility.Collapsed;
             GameFoundMessage.Visibility = gameFound ? Visibility.Visible : Visibility.Collapsed;
             PatchProgressionMessage.Visibility = patchProgress ? Visibility.Visible : Visibility.Collapsed;
-            PatchProgressBar.Visibility = patchProgress ? Visibility.Visible : Visibility.Collapsed;
+            PatchProgressBar.Visibility = patchProgressBar ? Visibility.Visible : Visibility.Collapsed;
             Credits.Visibility = credits ? Visibility.Visible : Visibility.Collapsed;
             PatchOptions.Visibility = patchOptions ? Visibility.Visible : Visibility.Collapsed;
             RandomQuotes.Visibility = randomQuotes ? Visibility.Visible : Visibility.Collapsed;
@@ -620,5 +664,7 @@ namespace KHFM_VF_Patch
             SaveOriginalFilesCheckbox.Visibility = saveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
             SaveOriginalFilesDescription.Visibility = saveOriginalFiles ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        #endregion
     }
 }
