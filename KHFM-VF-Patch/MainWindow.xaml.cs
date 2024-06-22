@@ -122,7 +122,7 @@ namespace KHFM_VF_Patch
             var assemblyPath = Assembly.GetEntryAssembly().Location;
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
-            if (assemblyDirectory.EndsWith("net5.0-windows"))
+            if (assemblyDirectory.Equals("net8.0-windows7.0"))
             {
                 PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
             }
