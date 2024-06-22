@@ -58,6 +58,7 @@ namespace KHFM_VF_Patch
         private const string KH1_ENDING_VIDEO_FILENAME = "END.mp4";
         private const string DEFAULT_EPIC_GAMES_FOLDER = @"C:\Program Files\Epic Games\KH_1.5_2.5";
         private const string DEFAULT_STEAM_FOLDER = @"C:\Program Files (x86)\Steam\steamapps\common\KINGDOM HEARTS -HD 1.5+2.5 ReMIX-";
+        private const string DEFAULT_STEAM_DECK_FOLDER = "/home/deck/.local/share/Steam/steamapps/Common/KINGDOM HEARTS -HD 1.5+2.5 ReMIX-";
         private const string SAVE_FOLDER_NAME = "Patch/Saves";
         private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
 
@@ -75,7 +76,7 @@ namespace KHFM_VF_Patch
         private float _patchState;
         private string _selectedGameFolder;
         private int _randomQuotesCounter;
-        private bool isSteamInstall;
+        private bool _isSteamInstall;
 
         public float PatchState
         {
@@ -147,6 +148,11 @@ namespace KHFM_VF_Patch
             else if (CheckGameFolder(DEFAULT_STEAM_FOLDER))
             {
                 _selectedGameFolder = DEFAULT_STEAM_FOLDER;
+                ReadyToPatchState();
+            }
+            else if (CheckGameFolder(DEFAULT_STEAM_DECK_FOLDER))
+            {
+                _selectedGameFolder = DEFAULT_STEAM_DECK_FOLDER;
                 ReadyToPatchState();
             }
             else
@@ -239,7 +245,7 @@ namespace KHFM_VF_Patch
             RandomQuotes.Visibility = Visibility.Collapsed;
         }
 
-        private void BrowsFolderButtonClick(object sender, RoutedEventArgs e)
+        private void BrowseFolderButtonClick(object sender, RoutedEventArgs e)
         {
             using var dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -264,7 +270,7 @@ namespace KHFM_VF_Patch
 
         private List<string> GetRequiredFiles()
         {
-            var pathname = isSteamInstall ? "dt/" : "en/";
+            var pathname = _isSteamInstall ? "dt/" : "en/";
             var filepaths = new List<string>();
 
             foreach (var filename in REQUIRED_FILE_NAMES)
@@ -290,7 +296,7 @@ namespace KHFM_VF_Patch
         private bool CheckGameFolder(string folder)
         {
             // Check if install is a Steam install
-            isSteamInstall = Directory.Exists(Path.Combine(folder, "STEAM"));
+            _isSteamInstall = Directory.Exists(Path.Combine(folder, "STEAM"));
 
             // Check PKG/HED files
             foreach (var requiredFile in GetRequiredFiles())
@@ -420,7 +426,7 @@ namespace KHFM_VF_Patch
 
                 var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
                 var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
-                var movieFolderPath = isSteamInstall ? @"STEAM\dt\KH1Movie" : @"EPIC\en\KH1Movie";
+                var movieFolderPath = _isSteamInstall ? @"STEAM\dt\KH1Movie" : @"EPIC\en\KH1Movie";
                 var gameVideosFolder = Path.Combine(_selectedGameFolder, movieFolderPath);
                 var originalOpeningVideoFile = Path.Combine(gameVideosFolder, KH1_OPENING_VIDEO_FILENAME);
                 var originalEndingVideoFile = Path.Combine(gameVideosFolder, KH1_ENDING_VIDEO_FILENAME);
