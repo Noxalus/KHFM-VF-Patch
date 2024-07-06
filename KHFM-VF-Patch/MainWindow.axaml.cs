@@ -21,29 +21,35 @@ public partial class MainWindow : Window
     private readonly string? PROJECT_DIRECTORY;
     private const string PATCH_FOLDER_RELATIVE_PATH = "Resources/Patches";
     private static readonly string PATCH_FOLDER = Path.Combine(AppContext.BaseDirectory, PATCH_FOLDER_RELATIVE_PATH);
-    private const int REQUIRED_RANDOM_QUOTES_COUNT = 3;
 
     private static readonly List<string> RANDOM_QUOTES =
     [
-        "Cela pourrait être un peu long, je vous conseille d'aller chercher un café...",
-        "Sinon, votre journée s'est bien passée ?",
-        "Vous êtes toujours là ? Alors attendez, je vous prépare de quoi vous occuper...",
+        "\"Kingdom Hearts\" est le premier jeu de la série, mais ce n'est pas par lui que commence véritablement l'histoire.",
+        "L'idée originale de \"Kingdom Hearts\" est née d'une rencontre fortuite entre Shinji Hashimoto, producteur chez Square Enix, et un cadre de Disney dans un ascenseur. Les deux entreprises partageaient le même immeuble à Tokyo, ce qui a facilité cette collaboration improbable entre Square et Disney.",
+        "Pendant le développement, le jeu était connu sous le nom de code \"Project X\". Cela a permis de maintenir un certain mystère autour du projet et de protéger l'enthousiasme jusqu'à ce que les détails officiels soient révélés.",
+        "\"Kingdom Hearts\" intègre des personnages de la série \"Final Fantasy\". Tetsuya Nomura, qui avait travaillé sur la série \"Final Fantasy\", a inclus des personnages comme Cloud Strife et Sephiroth pour attirer les fans de \"Final Fantasy\" et créer une expérience de jeu encore plus riche.",
+        "Le développement du jeu a été particulièrement difficile en raison de la différence de culture d'entreprise entre Square Enix et Disney. Les équipes ont dû surmonter de nombreux défis pour aligner leurs visions créatives et techniques.",
+        "Le design initial de Sora le présentait comme un personnage mi-humain, mi-lion, portant une tronçonneuse à la place de la Keyblade. Cependant, ce concept a été jugé trop radical et a été modifié pour créer l'apparence actuelle de Sora et sa célèbre Keyblade.",
+        "Yoko Shimomura, la compositrice de la musique du jeu, a créé une bande-son qui est devenue emblématique pour la série. Sa musique a joué un rôle crucial dans la création de l'atmosphère magique et émotionnelle du jeu. Elle a également a également composé les musiques de jeux cultissimes comme Street Fighter 2, Super Mario RPG, Legend of Mana, Xenoblade Chronicles ou bien encore Final Fantasy XV.",
+        "La chanson thème \"Hikari\" (ou \"Simple and Clean\" en anglais) interprétée par Utada Hikaru est devenue emblématique pour la série.",
+        "Obtenir les autorisations nécessaires pour utiliser les personnages Disney a été un processus complexe. Chaque personnage devait être approuvé individuellement par Disney, ce qui a ajouté une couche supplémentaire de défis administratifs pour les développeurs.",
+        "Les séquences cinématiques de \"Kingdom Hearts\" ont été révolutionnaires pour l'époque, utilisant des graphismes avancés pour créer des scènes émotionnellement engageantes. Ces cinématiques ont contribué à la popularité et au succès critique du jeu.",
+        "Trouver le bon équilibre entre les éléments de gameplay et les éléments narratifs a été un défi constant. Les développeurs voulaient s'assurer que le jeu soit à la fois amusant à jouer et fidèle aux histoires et personnages des univers Disney et Square Enix.",
+        "Mickey n’apparaît qu'à la toute fin, dans une scène très courte. Il n'a été montré que sous forme d'ombre jusqu'à la toute fin, car Disney voulait s'assurer que l'utilisation de leur personnage principal soit parfaitement contrôlée.",
+        "Au départ, Disney souhaitait que Mickey Mouse soit le personnage principal du jeu. Cependant, Tetsuya Nomura, le réalisateur, a réussi à convaincre Disney de créer un personnage original, Sora, pour mieux correspondre à l'univers qu'ils souhaitaient créer. Mickey a finalement été inclus, mais seulement dans un rôle limité.",
+        "Un monde basé sur \"Le Livre de la Jungle\" de Disney devait à l'origine être inclus dans le jeu. Cependant, il a été coupé avant la sortie du jeu. Des restes de ce monde peuvent encore être trouvés dans les fichiers du jeu.",
+        "À l'origine, il y avait beaucoup de scepticisme quant à savoir si la combinaison des univers Disney et Final Fantasy fonctionnerait. Cependant, le jeu a été largement acclamé par la critique et est devenu un énorme succès commercial, ouvrant la voie à de nombreuses suites et spin-offs.",
         "Saviez-vous que Donald Reignoux, l'excellent doubleur de Sora, a également doublé Titeuf, Lúcio dans Overwatch, mais aussi Connor dans Detroit: Become Human ?",
         "Richard Darbois est connu pour avoir fait des voix emblématiques, dont celle d'Indiana Jones ou de Buzz l'Éclair, mais saviez-vous qu'il a participé à ce Kingdom Hearts en doublant le Génie et Oogie Boogie ?",
-        "Kingdom Hearts est le premier jeu de la série, mais ce n'est pas par lui que commence véritablement l'histoire.",
-        "Si comme moi vous n'avez jamais fait la version Final Mix du jeu, sachez qu'un boss plus compliqué que Sephiroth vous attend ! J'ai tellement hâte !",
-        "Ce patch a nécessité des dizaines d'heures de travail et totalise des centaines de commits sur trois repos différents !",
-        "Un patch pour rétablir les voix françaises sur Kingdom Hearts 2 a été créé par TieuLink sur le site Nexus Mods !",
-        "Une modification future de ce patch permettra peut-être de supprimer les sous-titres pour renforcer l'immersion.",
-        "Saviez-vous que Mickey était censé être le protagoniste principal du jeu à la place de Sora ? Cela expliquerait pourquoi Donald et Dingo sont ses compagnons.",
-        "Disney ne voulait pas que Mickey soit dans le jeu. Ils ont finalement accepté, mais à la condition qu'il ne soit présent que dans une seule scène du jeu. Nomura a choisi de le mettre à la fin.",
-        "Yoko Shimomura, la compositrice du jeu, a également composé les musiques de Street Fighter 2, Legend of Mana, Xenoblade Chronicles et Final Fantasy XV.",
+        "Si vous n'avez jamais fait la version Final Mix du jeu, sachez qu'un boss plus compliqué que Sephiroth vous attend !",
         "La musique One-Winged Angel présente dans le jeu vient de Final Fantasy VII et a été composée par Nobuo Uematsu.",
         "Disney était très furieux quand ils ont vu qu'Ariel pouvait se battre. Pour s'excuser, Square Enix a été forcé d'en faire un monde musical dans Kingdom Hearts 2...",
         "Dans la Forteresse Oubliée, il y a une entrée pour un ascenseur près du sommet mais... pas d'ascenseur !",
         "L'Île du Destin dans la fin des mondes s'appelle Île du Souvenir.",
         "Quand on détruit la maison de Bourriquet, elle apparaît dans une autre page !",
         "Dans le monde des merveilles, on peut voir le four allumé même après avoir grandi !",
+        "Ce patch a nécessité plusieurs dizaines d'heures de travail et totalise des centaines de commits sur trois repos différents !",
+        "Un patch pour rétablir les voix françaises sur Kingdom Hearts 2 a été créé par TieuLink sur le site Nexus Mods !",
     ];
 
     private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
@@ -80,6 +86,8 @@ public partial class MainWindow : Window
     private bool _shouldPatchMagic;
     private bool _shouldPatchTexture;
     private bool _shouldSaveOriginalFiles;
+    private Random _random = new Random();
+
 
     #endregion
 
@@ -230,25 +238,9 @@ public partial class MainWindow : Window
 
     private void UpdateRandomQuotes(object? sender, EventArgs? e)
     {
-        var random = new Random();
-
-        if (_randomQuotesCounter < REQUIRED_RANDOM_QUOTES_COUNT)
-        {
-            RandomQuotes.Text = RANDOM_QUOTES[_randomQuotesCounter];
-        }
-        else
-        {
-            if (RANDOM_QUOTES.Count <= REQUIRED_RANDOM_QUOTES_COUNT)
-            {
-                RandomQuotes.IsVisible = false;
-            }
-            else
-            {
-                var randomQuoteIndex = random.Next(REQUIRED_RANDOM_QUOTES_COUNT, RANDOM_QUOTES.Count);
-                RandomQuotes.Text = RANDOM_QUOTES[randomQuoteIndex];
-                RANDOM_QUOTES.RemoveAt(randomQuoteIndex);
-            }
-        }
+        var randomQuoteIndex = _random.Next(0, RANDOM_QUOTES.Count);
+        RandomQuotes.Text = RANDOM_QUOTES[randomQuoteIndex];
+        RANDOM_QUOTES.RemoveAt(randomQuoteIndex);
 
         _randomQuotesCounter++;
     }
@@ -745,16 +737,12 @@ public partial class MainWindow : Window
 
     private void ClickToOpenURL(object sender, PointerPressedEventArgs e)
     {
-        if (sender is TextBlock textBlock)
+        if (sender is TextBlock textBlock && textBlock.Tag != null)
         {
-            if (textBlock.Tag != null)
+            var url = textBlock.Tag.ToString();
+            if (!string.IsNullOrEmpty(url))
             {
-                var url = textBlock.Tag.ToString();
-
-                if (url != null)
-                {
-                    OpenURL(url);
-                }
+                OpenURL(url);
             }
         }
 
@@ -772,7 +760,7 @@ public partial class MainWindow : Window
         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
 
-    private static void SetUIVisibility(
+    private void SetUIVisibility(
         bool gameNotFound = false,
         bool browse = false,
         bool patch = false,
