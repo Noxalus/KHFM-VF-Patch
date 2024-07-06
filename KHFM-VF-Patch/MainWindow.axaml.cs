@@ -11,7 +11,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
-using System.Reflection;
 
 namespace KHFM_VF_Patch;
 
@@ -143,12 +142,10 @@ public partial class MainWindow : Window
         PatchTextureOption.IsCheckedChanged += PatchTextureOption_IsCheckedChanged;
         SaveOriginalFilesOption.IsCheckedChanged += SaveOriginalFilesOption_IsCheckedChanged;
 
-        // TODO: Find a better way to do that
         // Determine if this program is executed from a build or from Visual Studio
-        var assemblyPath = Assembly.GetEntryAssembly().Location;
-        var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+        var isUsingVisualStudio = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("VSAPPIDDIR"));
 
-        if (assemblyDirectory.EndsWith("win-x64"))
+        if (isUsingVisualStudio)
         {
             PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
         }
@@ -186,7 +183,7 @@ public partial class MainWindow : Window
             ReadyToPatchState();
         }
         else
-        { 
+        {
             Debug.WriteLine("Default game folder not found.");
         }
     }
@@ -272,8 +269,6 @@ public partial class MainWindow : Window
 
         if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
         {
-            _isSteamInstall = true;
-
             SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: ShouldSaveOriginalFiles);
             SetImageHeight(75);
         }
@@ -324,8 +319,6 @@ public partial class MainWindow : Window
         if (result.Count == 1)
         {
             var path = result[0].Path.LocalPath;
-            Debug.WriteLine($"Selected: {path}");
-            Console.WriteLine($"Selected: {path}");
 
             // Check if install is a Steam install
             var steamFolder = Path.Combine(path, "STEAM");
@@ -501,7 +494,7 @@ public partial class MainWindow : Window
 
             var openingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_OPENING_VIDEO_FILENAME);
             var endingVideoFile = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME, KH1_ENDING_VIDEO_FILENAME);
-            var movieFolderPath = _isSteamInstall ? @"STEAM\dt\KH1Movie" : @"EPIC\en\KH1Movie";
+            var movieFolderPath = _isSteamInstall ? @"STEAM/dt/KH1Movie" : @"EPIC/en/KH1Movie";
             var gameVideosFolder = Path.Combine(_selectedGameFolder, movieFolderPath);
             var originalOpeningVideoFile = Path.Combine(gameVideosFolder, KH1_OPENING_VIDEO_FILENAME);
             var originalEndingVideoFile = Path.Combine(gameVideosFolder, KH1_ENDING_VIDEO_FILENAME);
@@ -595,7 +588,7 @@ public partial class MainWindow : Window
 
         return path;
     }
-    
+
     private bool CheckRemainingSpace(string folder)
     {
         // Required at least 4GB to save original files
