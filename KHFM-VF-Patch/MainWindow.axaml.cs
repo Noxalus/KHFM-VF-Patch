@@ -18,9 +18,9 @@ public partial class MainWindow : Window
 {
     #region Constants
 
-    private readonly string PROJECT_DIRECTORY;
+    private readonly string? PROJECT_DIRECTORY;
     private const string PATCH_FOLDER_RELATIVE_PATH = "Resources/Patches";
-    private static readonly string PATCH_FOLDER = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), PATCH_FOLDER_RELATIVE_PATH);
+    private static readonly string PATCH_FOLDER = Path.Combine(AppContext.BaseDirectory, PATCH_FOLDER_RELATIVE_PATH);
     private const int REQUIRED_RANDOM_QUOTES_COUNT = 3;
 
     private static readonly List<string> RANDOM_QUOTES =
@@ -74,7 +74,7 @@ public partial class MainWindow : Window
     #region Private fields
 
     private readonly Progress<List<object>> _progress;
-    private string _selectedGameFolder;
+    private string? _selectedGameFolder;
     private int _randomQuotesCounter;
     private bool _isSteamInstall;
     private bool _shouldPatchMagic;
@@ -147,7 +147,7 @@ public partial class MainWindow : Window
 
         if (isUsingVisualStudio)
         {
-            PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.Parent?.FullName;
         }
 
         SearchGameFolderState();
@@ -176,7 +176,6 @@ public partial class MainWindow : Window
         {
             _selectedGameFolder = DEFAULT_STEAM_DECK_FOLDER;
         }
-
 
         if (!string.IsNullOrEmpty(_selectedGameFolder))
         {
@@ -220,7 +219,7 @@ public partial class MainWindow : Window
     {
         UpdateRandomQuotes(null, null);
 
-        DispatcherTimer timer = new DispatcherTimer
+        DispatcherTimer timer = new()
         {
             Interval = TimeSpan.FromSeconds(10)
         };
@@ -229,7 +228,7 @@ public partial class MainWindow : Window
         timer.Start();
     }
 
-    private void UpdateRandomQuotes(object sender, EventArgs e)
+    private void UpdateRandomQuotes(object? sender, EventArgs? e)
     {
         var random = new Random();
 
@@ -392,10 +391,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task Patch(string gameFolder)
+    private async Task Patch(string? gameFolder)
     {
-        FinishedState();
-        return;
+        if (gameFolder == null)
+        {
+            Console.Error.WriteLine("No game folder...");
+            return;
+        }
 
         try
         {
@@ -490,6 +492,12 @@ public partial class MainWindow : Window
 
     private async Task PatchVideos()
     {
+        if (_selectedGameFolder == null)
+        {
+            Console.Error.WriteLine("No selected game folder...");
+            return;
+        }
+
         // If found, extract video patch
         if (File.Exists(Path.Combine(PATCH_FOLDER, KH1_PATCH_VIDEOS_ZIP_NAME)) || !string.IsNullOrEmpty(PROJECT_DIRECTORY))
         {
@@ -521,7 +529,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PatchProgress(object sender, PatchProgressEventArgs e)
+    private void PatchProgress(object? sender, PatchProgressEventArgs e)
     {
         if (e.EntriesTotal > 0)
         {
@@ -568,14 +576,19 @@ public partial class MainWindow : Window
         return true;
     }
 
-    public static string GetMountPoint(string path)
+    public static string? GetMountPoint(string path)
     {
-        path = Path.GetFullPath(path);
-        while (!Directory.Exists(path))
+        var fullPath = Path.GetFullPath(path);
+        string? mountPoint = fullPath;
+
+        while (!Directory.Exists(mountPoint))
         {
-            path = Path.GetDirectoryName(path);
-            if (string.IsNullOrEmpty(path))
+            mountPoint = Path.GetDirectoryName(mountPoint);
+
+            if (string.IsNullOrEmpty(mountPoint))
+            {
                 throw new InvalidOperationException("Could not find the mount point.");
+            }
         }
 
         if (File.Exists("/proc/mounts"))
@@ -583,24 +596,40 @@ public partial class MainWindow : Window
             var lines = File.ReadAllLines("/proc/mounts");
             var mountPoints = lines.Select(line => line.Split(' ')[1]).ToList();
 
-            while (!mountPoints.Contains(path) && path != "/")
+            while (!mountPoints.Contains(mountPoint) && mountPoint != "/")
             {
-                path = Path.GetDirectoryName(path);
+                mountPoint = Path.GetDirectoryName(mountPoint);
+
+                if (string.IsNullOrEmpty(mountPoint))
+                {
+                    throw new InvalidOperationException("Could not find the mount point.");
+                }
             }
         }
 
-        return path;
+        return mountPoint;
     }
 
-    private bool CheckRemainingSpace(string folder)
+    private static bool CheckRemainingSpace(string? folder)
     {
+        if (folder == null)
+        {
+            return false;
+        }
+
         // Required at least 4GB to save original files
         return GetFreeSpace(folder) > 4e+9;
     }
 
-    private long GetFreeSpace(string folder)
+    private static long GetFreeSpace(string folder)
     {
         var mountPoint = GetMountPoint(folder);
+
+        if (mountPoint == null)
+        {
+            return 0L;
+        }
+
         var drive = new DriveInfo(mountPoint);
 
         // Required at least 4GB to save original files
@@ -664,16 +693,37 @@ public partial class MainWindow : Window
 
         for (int i = 0; i < files.Length; i++)
         {
-            string outputPath = files[i].DirectoryName.Replace(source.FullName, destination.FullName);
+            // Ensure files[i] is not null
+            if (files[i] == null)
+            {
+                continue;
+            }
+
+            string directoryName = files[i].DirectoryName ?? throw new InvalidOperationException("Directory name cannot be null.");
+            string outputPath = directoryName.Replace(source.FullName, destination.FullName);
+
+            // Ensure the output directory exists
             Directory.CreateDirectory(outputPath);
 
+            // Ensure PatchProgressionMessage is properly declared and accessible
             PatchProgressionMessage.Text = $"Copie du fichier {files[i].Name}...";
-            await CopyToAsync(files[i].FullName, Path.Combine(outputPath, files[i].Name), progress, cancellationToken, bufferSize, false);
+
+            // Await the asynchronous copy operation
+            await CopyToAsync(
+                files[i].FullName,
+                Path.Combine(outputPath, files[i].Name),
+                progress,
+                cancellationToken,
+                bufferSize,
+                false
+            );
+
+            // Report progress
             progress.Report(new List<object> { (long)i, (long)files.Length, files[i].Name });
         }
     }
 
-    public async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default, int bufferSize = 0x1000, bool updateProgress = true)
+    public static async Task CopyToAsync(string sourceFile, string destinationFile, IProgress<List<object>> progress, CancellationToken cancellationToken = default, int bufferSize = 0x1000, bool updateProgress = true)
     {
         using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
         using var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
@@ -695,9 +745,17 @@ public partial class MainWindow : Window
 
     private void ClickToOpenURL(object sender, PointerPressedEventArgs e)
     {
-        if (sender is TextBlock textBlock && textBlock.Text != null)
+        if (sender is TextBlock textBlock)
         {
-            OpenURL(textBlock.Tag.ToString());
+            if (textBlock.Tag != null)
+            {
+                var url = textBlock.Tag.ToString();
+
+                if (url != null)
+                {
+                    OpenURL(url);
+                }
+            }
         }
 
         e.Handled = true;
@@ -714,7 +772,7 @@ public partial class MainWindow : Window
         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
 
-    private void SetUIVisibility(
+    private static void SetUIVisibility(
         bool gameNotFound = false,
         bool browse = false,
         bool patch = false,
