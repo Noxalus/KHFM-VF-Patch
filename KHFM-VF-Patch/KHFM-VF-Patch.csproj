@@ -1,38 +1,54 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
-    <RootNamespace>KHFM_VF_Patch</RootNamespace>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-    <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>Noxalus.pfx</AssemblyOriginatorKeyFile>
-    <Description>Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix française de la version PS2 de 2002.</Description>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <Description>Patch pour changer les voix anglaises de Kingdom Hearts 1 Final Mix PC par les voix françaises de la version PS2 de 2002.</Description>
     <Copyright>Noxalus</Copyright>
     <PackageProjectUrl>https://noxalus.io</PackageProjectUrl>
     <PackageIcon>logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/Noxalus/KHFM-VF-Patch</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <AssemblyVersion>1.2.2.0</AssemblyVersion>
-    <FileVersion>1.2.2.0</FileVersion>
-    <Platforms>AnyCPU;x86;x64</Platforms>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
     <Version>1.3.0</Version>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile> <!-- Enable single-file publish -->
+    <SelfContained>true</SelfContained> <!-- Include the .NET runtime -->
+    <PublishTrimmed>false</PublishTrimmed> <!-- Disable trimming to avoid issues -->
+    <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
+    <TrimMode>copyused</TrimMode>
   </PropertyGroup>
-
   <ItemGroup>
-    <None Remove="Resources\Images\donate.png" />
-    <None Remove="Resources\Images\logo.png" />
-    <None Remove="Resources\Images\MagicPatch.png" />
-    <None Remove="Resources\Images\TexturePatch.png" />
-    <None Remove="Resources\logo.png" />
-    <None Remove="Resources\donate.png" />
+    <Content Include="icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.15.0" />
+    <!--This helps with theme dll-s trimming.
+	If you will publish your application in self-contained mode with p:PublishTrimmed=true and it will use Fluent theme Default theme will be trimmed from the output and vice versa.
+	https://github.com/AvaloniaUI/Avalonia/issues/5593 -->
+    <TrimmableAssembly Include="Avalonia.Themes.Fluent" />
+    <TrimmableAssembly Include="Avalonia.Themes.Default" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.11" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.11" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="Xe.BinaryMapper" Version="1.5.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AvaloniaResource Include="Resources\Images\**" />
+    <AvaloniaResource Include="icon.png" />
+    <None Remove=".gitignore" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +67,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="patch\KH1FM-VF.patch">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -82,5 +101,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

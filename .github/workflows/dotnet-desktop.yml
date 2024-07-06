@@ -1,7 +1,7 @@
 name: GitHub Release
 on:
   push:
-    branches: [ ci ]
+    branches: [ ci, avalonia ]
     tags:
       - 'v*.*'
 jobs:
@@ -24,22 +24,32 @@ jobs:
         with:
           proj-path: KHFM-VF-Patch/KHFM-VF-Patch.csproj
 
-      - name: Build Binary
+      - name: Build for Windows (x86)
         shell: cmd
-        run: call .\CI\Build.cmd
+        run: dotnet publish KHFM-VF-Patch/KHFM-VF-Patch.sln /p:PublishReadyToRun=true --self-contained --runtime win-x86
 
-      - name: Create Artifact
+      - name: Build for Linux (x64)
+        shell: cmd
+        run: dotnet publish KHFM-VF-Patch/KHFM-VF-Patch.sln /p:PublishReadyToRun=true --self-contained --runtime linux-x64
+
+      - name: Create Artifacts
         shell: cmd
         run: call .\CI\CreateArtifact.cmd
 
-      - name: Rename Artifact with project version
+      - name: Rename Windows Artifact with project version
         shell: cmd
-        run: mv ./KHFM-VF-Patch/KHFM-VF-Patch.zip ./KHFM-VF-Patch/KHFM-VF-Patch-${{ steps.get-version.outputs.version }}.zip
+        run: mv ./KHFM-VF-Patch/KHFM-VF-Patch-Windows.zip ./KHFM-VF-Patch/KHFM-VF-Patch-Windows-${{ steps.get-version.outputs.version }}.zip
+
+      - name: Rename Linux Artifact with project version
+        shell: cmd
+        run: mv ./KHFM-VF-Patch/KHFM-VF-Patch-Linux.zip ./KHFM-VF-Patch/KHFM-VF-Patch-Linux-${{ steps.get-version.outputs.version }}.zip
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./KHFM-VF-Patch/KHFM-VF-Patch-${{ steps.get-version.outputs.version }}.zip
+          files: |
+            ./KHFM-VF-Patch/KHFM-VF-Patch-Windows-${{ steps.get-version.outputs.version }}.zip
+            ./KHFM-VF-Patch/KHFM-VF-Patch-Linux-${{ steps.get-version.outputs.version }}.zip
           draft: true
           prerelease: true

@@ -1,0 +1,166 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:KHFM_VF_Patch"
+		x:Name="PatchWindow"
+        x:Class="KHFM_VF_Patch.MainWindow"
+		Width="800" Height="450"
+		Background="White"
+		CanResize="False"
+		Icon="icon.png"
+        Title="Kingdom Hearts Final Mix - Patch VF">
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontFamily" Value="Segoe UI" />
+			<Setter Property="FontSize" Value="13" />
+		</Style>
+		<Style Selector="TextBlock.ItalicBold">
+			<Setter Property="FontStyle" Value="Italic"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+	</Window.Styles>
+	<Grid x:Name="MainGrid" Margin="20,0,20,0">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="250" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="Resources/Images/logo.png" RenderTransformOrigin="0.5,0">
+			<Image.RenderTransform>
+				<TransformGroup>
+					<ScaleTransform ScaleX="1" ScaleY="1"/>
+					<SkewTransform/>
+					<RotateTransform/>
+					<TranslateTransform/>
+				</TransformGroup>
+			</Image.RenderTransform>
+		</Image>
+
+		<StackPanel x:Name="PatchOptions" Grid.Column="0" Grid.Row="2">
+			<DockPanel>
+				<CheckBox x:Name="PatchMagicOption" FontWeight="Bold" Content="Appliquer la correction de &quot;Magic&quot; en &quot;Magie&quot;" />
+			</DockPanel>
+			<DockPanel Margin="20,0,0,0">
+				<TextBlock TextWrapping="Wrap" Width="450" FontSize="10">Une erreur s'est glissée dans la version HD du jeu en français, l'en-tête du menu "Magie" affiche le titre en anglais ("Magic").</TextBlock>
+				<Image Margin="20,-15,0,0" Source="Resources/Images/MagicPatch.png" Height="50" HorizontalAlignment="Right" />
+			</DockPanel>
+
+			<DockPanel>
+				<CheckBox x:Name="PatchTextureOption" Content="Appliquer les corrections de traduction." FontWeight="Bold" />
+			</DockPanel>
+			<DockPanel Margin="20,0,0,0">
+				<TextBlock TextWrapping="Wrap" Width="450" FontSize="10">
+					Certains éléments de l'interface ainsi que certains textes sont restés en anglais dans des cas parfois peu logiques.
+					Par exemple les PC (SP en anglais) sont bel et bien traduits tandis que les PV/PM (HP/MP en anglais) ne le sont pas. Vous trouverez ci-dessous la liste des changements effectués:<LineBreak />
+					<TextBlock Margin="20,0,0,0" Width="430" TextWrapping="Wrap" FontSize="10">
+						- Correction des appellations HP/MP en PV/PM dans les textures ainsi que dans les textes<LineBreak />
+						- Correction du vaisseau Gummi (PWR (Power) en ENE (Énergie), SHD (Shield) en BOU (Bouclier), CHG (Charge) en TRB (Turbo)<LineBreak />
+					</TextBlock>
+				</TextBlock>
+				<Image Source="Resources/Images/TexturePatch.png" Margin="0,-20,0,0" Height="100" HorizontalAlignment="Right" />
+			</DockPanel>
+
+			<DockPanel Margin="0,0,0,0">
+			</DockPanel>
+
+			<DockPanel x:Name="SaveOriginalFilesCheckbox">
+				<CheckBox x:Name="SaveOriginalFilesOption" Content="Sauvegarder les fichiers originaux" FontWeight="Bold" />
+			</DockPanel>
+			<DockPanel Margin="20,0,0,0" x:Name="SaveOriginalFilesDescription">
+				<TextBlock TextWrapping="Wrap" FontSize="10">
+					Ce patch va modifier la majorité des fichiers du jeu, il est donc fortement conseillé de sauvegarder les fichiers originaux pour pouvoir les réstituer en cas de problème. En cochant cette option, les fichiers impactés
+					seront automatiquement sauvegardés. Le problème est que cela nécessite d'avoir au moins 3 Go d'espace libre sur le disque où a été installé le jeu. Si vous n'avez pas assez d'espace, vous pouvez décocher cette option.
+				</TextBlock>
+			</DockPanel>
+		</StackPanel>
+
+		<TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" Classes="ItalicBold" TextAlignment="Center" Foreground="#FFFF0505">
+			Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. <LineBreak />
+			Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu.
+		</TextBlock>
+		<Button Grid.Column="0" Grid.Row="3" x:Name="IgnoreSaveButton" Width="450" Height="60" Content="Ignorer la sauvegarde" Click="IgnoreSaveButtonClick" Background="#FFD32626" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center"/>
+		<TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct et est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>
+		<TextBlock x:Name="PatchProgressionMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" Foreground="#FF56BF5F">[Progression du patch]</TextBlock>
+		<ProgressBar x:Name="PatchProgressBar" Grid.Column="0" Grid.Row="2" Minimum="0" Maximum="100" Height="42" />
+		<Button Grid.Column="0" Grid.Row="3" x:Name="BrowseButton" Width="450" Height="100" Content="Chercher le dossier du jeu" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" Click="BrowseFolderButtonClick" Background="#FFD32626" Foreground="White" FontWeight="Bold" FontSize="20"/>
+		<Button Grid.Column="0" Grid.Row="3" x:Name="PatchButton" Width="450" Height="50" Content="Patcher le jeu" Click="PatchGameButtonClick" Background="#FF43B133" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" />
+		<TextBlock x:Name="Credits" Grid.Column="0" Grid.Row="2" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black" FontSize="11">
+			<TextBlock FontSize="25" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black">Crédits</TextBlock>
+			<LineBreak />
+			<LineBreak />
+			Pour commencer, merci à <Bold>Squaresoft</Bold>/<Bold>Square Enix</Bold> pour avoir produit l'un des meilleurs jeux PS2 de l'histoire,
+			mais également à toute l'équipe de traduction française de l'époque qui nous a fourni un doublage d'une très rare qualité.
+			<LineBreak />
+			<LineBreak />
+			Ce patch a été rendu possible grâce aux travaux effectués par l'équipe de
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://github.com/Xeeynamo/OpenKh">
+					OpenKH
+				</TextBlock>
+			</Bold> et sa communauté. J'aimerais remercier tout particulièrement
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/xeeynamo">
+					Xeeynamo
+				</TextBlock>
+			</Bold> qui a écrit l'outil pour extraire les fichiers de la version PC.
+			<LineBreak />
+			<LineBreak />
+
+			Mais aussi grâce à une poignée de Français déterminés à tout faire pour retrouver les voix françaises de l'époque sur le jeu.<LineBreak />
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://www.paypal.com/donate/?hosted_button_id=CYJX4ABU4M3UY">
+					Fotia
+				</TextBlock>
+			</Bold>: qui s'est occupé de corriger l'ordre des voix pendant les combats, du logo et des voix sur les nouvelles scènes de Final Mix.<LineBreak />
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/Noxyan88">
+					NOXYAN
+				</TextBlock>
+			</Bold>: qui s'est occupé de remplacer les voix sur les vidéos pré-rendues et de tester l'entièreté du jeu plusieurs fois !<LineBreak />
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/PurpleHato">
+					Purple Hato
+				</TextBlock>
+			</Bold>: qui s'est occupé de corriger certains anglicismes visuels et textuels.<LineBreak />
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/TieuLink">
+					TieuLink
+				</TextBlock>
+			</Bold>,
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/xeronkar">
+					Xeronkar
+				</TextBlock>
+			</Bold> et
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://www.youtube.com/channel/UCR5O00P0r9BbKWb7X-Gfe-w">
+					Napstio
+				</TextBlock>
+			</Bold>: pour leurs connaissances sur les fichiers du jeu et leurs tests qui ont permis de déceler les problèmes<LineBreak />
+			<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/AntonioDePau">
+					AntonioDePau
+				</TextBlock>
+			</Bold>: pour avoir corrigé les problèmes de l'outil permettant de patcher les fichiers du jeu<LineBreak />
+			<LineBreak />
+			De mon côté (<Bold>
+				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/Noxalus">Noxalus</TextBlock>
+			</Bold>) j'ai initié ce projet 2 semaines avant
+			la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.<LineBreak />
+			<LineBreak />
+			Pour héberger les gros fichiers du patch sur GitHub, il est nécessaire de payer 5$/mois. Vous pouvez aider financièrement le projet en donant via ce bouton:
+			<LineBreak />
+			<LineBreak />
+			<InlineUIContainer>
+				<Image Source="Resources/Images/donate.png" Height="50" PointerPressed="OnDonateClick"></Image>
+			</InlineUIContainer>
+		</TextBlock>
+		<TextBlock x:Name="RandomQuotes" Grid.Column="0" Grid.Row="3" TextWrapping="Wrap" Padding="5" TextAlignment="Center" Foreground="Black" FontStyle="Italic">{Binding RandomQuote}</TextBlock>
+	</Grid>
+</Window>
