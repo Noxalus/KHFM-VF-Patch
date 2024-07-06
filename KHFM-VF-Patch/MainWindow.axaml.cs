@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -6,33 +5,18 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Ionic.Zip;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
+using System.Reflection;
 
 namespace KHFM_VF_Patch;
 
 public partial class MainWindow : Window
 {
-    #region Events
-
-    // This event is implemented by "INotifyPropertyChanged" and is all we need to inform 
-    // our View about changes.
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    // For convenience we add a method which will raise the above event.
-    private void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    #endregion
-
     #region Constants
 
     private readonly string PROJECT_DIRECTORY;
@@ -91,51 +75,55 @@ public partial class MainWindow : Window
     #region Private fields
 
     private readonly Progress<List<object>> _progress;
-    private float _patchState;
     private string _selectedGameFolder;
     private int _randomQuotesCounter;
     private bool _isSteamInstall;
+    private bool _shouldPatchMagic;
+    private bool _shouldPatchTexture;
+    private bool _shouldSaveOriginalFiles;
 
     #endregion
 
     #region Properties
 
-    public float PatchState
+    public bool ShouldPatchMagic
     {
-        get => _patchState;
+        get { return _shouldPatchMagic; }
         set
         {
-            _patchState = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PatchState)));
+            if (_shouldPatchMagic != value)
+            {
+                _shouldPatchMagic = value;
+                PatchMagicOption.IsChecked = value;
+            }
         }
     }
 
-    public bool? ShouldPatchMagic
+    public bool ShouldPatchTexture
     {
-        get => (bool?)GetValue(ShouldPatchMagicProperty);
-        set => SetValue(ShouldPatchMagicProperty, value);
+        get { return _shouldPatchTexture; }
+        set
+        {
+            if (_shouldPatchTexture != value)
+            {
+                _shouldPatchTexture = value;
+                PatchTextureOption.IsChecked = value;
+            }
+        }
     }
 
-    public bool? ShouldPatchTexture
+    public bool ShouldSaveOriginalFiles
     {
-        get => (bool?)GetValue(ShouldPatchTextureProperty);
-        set => SetValue(ShouldPatchTextureProperty, value);
+        get { return _shouldSaveOriginalFiles; }
+        set
+        {
+            if (_shouldSaveOriginalFiles != value)
+            {
+                _shouldSaveOriginalFiles = value;
+                SaveOriginalFilesOption.IsChecked = value;
+            }
+        }
     }
-
-    public bool? ShouldSaveOriginalFiles
-    {
-        get => (bool?)GetValue(ShouldSaveOriginalFilesProperty);
-        set => SetValue(ShouldSaveOriginalFilesProperty, value);
-    }
-
-    public static readonly AvaloniaProperty ShouldPatchMagicProperty =
-        AvaloniaProperty.Register<MainWindow, bool>(nameof(ShouldPatchMagic), true);
-
-    public static readonly AvaloniaProperty ShouldPatchTextureProperty =
-        AvaloniaProperty.Register<MainWindow, bool>(nameof(ShouldPatchTexture), true);
-
-    public static readonly AvaloniaProperty ShouldSaveOriginalFilesProperty =
-        AvaloniaProperty.Register<MainWindow, bool>(nameof(ShouldSaveOriginalFiles), true);
 
     #endregion
 
@@ -144,29 +132,26 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        //DataContext = this;
 
+        // Enable all options by default
+        ShouldPatchMagic = true;
+        ShouldPatchTexture = true;
+        ShouldSaveOriginalFiles = true;
+
+        // Don't use data binding as I don't want to use MVVM pattern for a such simple app
         PatchMagicOption.IsCheckedChanged += OnPatchMagicOption_IsCheckedChanged;
-
-        //DataContext = new MainViewModel
-        //{
-        //    ShouldPatchMagic = true,
-        //    ShouldPatchTexture = true,
-        //    ShouldSaveOriginalFiles = true,
-        //    RandomQuote = "Example random quote."
-        //};
+        PatchTextureOption.IsCheckedChanged += PatchTextureOption_IsCheckedChanged;
+        SaveOriginalFilesOption.IsCheckedChanged += SaveOriginalFilesOption_IsCheckedChanged;
 
         // TODO: Find a better way to do that
-        /*
         // Determine if this program is executed from a build or from Visual Studio
         var assemblyPath = Assembly.GetEntryAssembly().Location;
         var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
-        if (assemblyDirectory.EndsWith("net8.0-windows7.0"))
+        if (assemblyDirectory.EndsWith("win-x64"))
         {
-            PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
+            PROJECT_DIRECTORY = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
         }
-        */
 
         SearchGameFolderState();
 
@@ -176,35 +161,58 @@ public partial class MainWindow : Window
             var totalFileSize = (long)value[1];
             var filename = (string)value[2];
 
-            PatchState = (float)((double)copiedSize / totalFileSize * 100);
+            SetPatchProgressUI((float)((double)copiedSize / totalFileSize * 100));
         });
 
         // Check default installation folder for Epic Games
         if (CheckGameFolder(DEFAULT_EPIC_GAMES_FOLDER, false))
         {
             _selectedGameFolder = DEFAULT_EPIC_GAMES_FOLDER;
-            ReadyToPatchState();
         }
         // Check default installation folder for Steam
         else if (CheckGameFolder(DEFAULT_STEAM_FOLDER, true))
         {
             _selectedGameFolder = DEFAULT_STEAM_FOLDER;
-            ReadyToPatchState();
         }
         // Check default installation folder for the Steam Deck
         else if (CheckGameFolder(DEFAULT_STEAM_DECK_FOLDER, true))
         {
             _selectedGameFolder = DEFAULT_STEAM_DECK_FOLDER;
+        }
+
+
+        if (!string.IsNullOrEmpty(_selectedGameFolder))
+        {
             ReadyToPatchState();
         }
         else
-        {
+        { 
             Debug.WriteLine("Default game folder not found.");
         }
     }
 
     private void OnPatchMagicOption_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
+        if (sender is CheckBox checkbox)
+        {
+            _shouldPatchMagic = checkbox.IsChecked.HasValue && checkbox.IsChecked.Value;
+        }
+    }
+
+    private void PatchTextureOption_IsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkbox)
+        {
+            _shouldPatchTexture = checkbox.IsChecked.HasValue && checkbox.IsChecked.Value;
+        }
+    }
+
+    private void SaveOriginalFilesOption_IsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkbox)
+        {
+            _shouldSaveOriginalFiles = checkbox.IsChecked.HasValue && checkbox.IsChecked.Value;
+        }
     }
 
     #endregion
@@ -262,13 +270,11 @@ public partial class MainWindow : Window
     {
         // TODO(bth): Show a button to unpatch the game
 
-        var shouldSaveOriginalFiles = ShouldSaveOriginalFiles.HasValue && ShouldSaveOriginalFiles.Value;
-
-        if (!shouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
+        if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
         {
             _isSteamInstall = true;
 
-            SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: shouldSaveOriginalFiles);
+            SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: ShouldSaveOriginalFiles);
             SetImageHeight(75);
         }
         else
@@ -408,20 +414,17 @@ public partial class MainWindow : Window
             // Extract VF patch files
             await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
 
-            var shouldPatchMagic = ShouldPatchMagic.HasValue && ShouldPatchMagic.Value;
-            var shouldPatchTexture = ShouldPatchTexture.HasValue && ShouldPatchTexture.Value;
-
             // Extract "Magic" to "Magie" fix patch
-            if (shouldPatchMagic)
+            if (ShouldPatchMagic)
             {
-                var magicPatchName = shouldPatchTexture
+                var magicPatchName = ShouldPatchTexture
                     ? KH1_PATCH_MAGIC_ZIP_NAME.Replace("{LANG}", "FR")
                     : KH1_PATCH_MAGIC_ZIP_NAME.Replace("{LANG}", "EN");
 
                 await ExtractPatch(magicPatchName);
             }
 
-            if (shouldPatchTexture)
+            if (ShouldPatchTexture)
             {
                 await ExtractPatch(KH1_PATCH_TEXTURES_ZIP_NAME);
             }
@@ -459,7 +462,7 @@ public partial class MainWindow : Window
                     var totalFileSize = (long)value[1];
                     var filename = (string)value[2];
 
-                    PatchState = (float)((double)copiedSize / totalFileSize * 100);
+                    SetPatchProgressUI((float)((double)copiedSize / totalFileSize * 100));
                 });
 
                 var patchedHEDFile = Path.ChangeExtension(patchedPKGFile, ".hed");
@@ -526,8 +529,14 @@ public partial class MainWindow : Window
     {
         if (e.EntriesTotal > 0)
         {
-            PatchState = 100f * e.EntriesPatched / e.EntriesTotal;
+            SetPatchProgressUI(100f * e.EntriesPatched / e.EntriesTotal);
         }
+    }
+
+    private void SetPatchProgressUI(float progress)
+    {
+        // Make sure the change is made on the UI thread
+        Dispatcher.UIThread.InvokeAsync(() => PatchProgressBar.Value = progress);
     }
 
     #endregion
@@ -586,21 +595,7 @@ public partial class MainWindow : Window
 
         return path;
     }
-
-    private void CheckSpaceClick(object sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrEmpty(_selectedGameFolder))
-        {
-            return;
-        }
-
-        var mountPoint = GetMountPoint(_selectedGameFolder);
-        var drive = new DriveInfo(mountPoint);
-
-        var freespace = drive.AvailableFreeSpace;
-        RemainingSpace.Text = $"Available space at {drive.Name}: {freespace / (1024 * 1024 * 1024)} GB";
-    }
-
+    
     private bool CheckRemainingSpace(string folder)
     {
         // Required at least 4GB to save original files
@@ -619,9 +614,7 @@ public partial class MainWindow : Window
     // fileToSaveOrRestore folder should be relative to game folder
     private async Task SaveOrRestore(string gameFolder, string fileToSaveOrRestore)
     {
-        var shouldSaveOriginalFiles = ShouldSaveOriginalFiles.HasValue && ShouldSaveOriginalFiles.Value;
-
-        if (!shouldSaveOriginalFiles)
+        if (!_shouldSaveOriginalFiles)
         {
             return;
         }
@@ -660,7 +653,7 @@ public partial class MainWindow : Window
     {
         if (eventData.EntriesTotal > 0)
         {
-            PatchState = 100f * eventData.EntriesExtracted / eventData.EntriesTotal;
+            SetPatchProgressUI(100f * eventData.EntriesExtracted / eventData.EntriesTotal);
         }
     }
 
