@@ -90,7 +90,7 @@
 		<ProgressBar x:Name="PatchProgressBar" Grid.Column="0" Grid.Row="2" Minimum="0" Maximum="100" Height="42" />
 		<Button Grid.Column="0" Grid.Row="3" x:Name="BrowseButton" Width="450" Height="100" Content="Chercher le dossier du jeu" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" Click="BrowseFolderButtonClick" Background="#FFD32626" Foreground="White" FontWeight="Bold" FontSize="20"/>
 		<Button Grid.Column="0" Grid.Row="3" x:Name="PatchButton" Width="450" Height="50" Content="Patcher le jeu" Click="PatchGameButtonClick" Background="#FF43B133" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center" />
-		<TextBlock x:Name="Credits" Grid.Column="0" Grid.Row="2" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black">
+		<TextBlock x:Name="Credits" Grid.Column="0" Grid.Row="2" TextWrapping="Wrap" Padding="5" FontWeight="Normal" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black" FontSize="11">
 			<TextBlock FontSize="25" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Stretch" Foreground="Black">Crédits</TextBlock>
 			<LineBreak />
 			<LineBreak />
@@ -112,7 +112,7 @@
 			<LineBreak />
 			<LineBreak />
 
-			Mais aussi grâce à une poignée de français déterminés à tout faire pour retrouver les voix française de l'époque sur le jeu.<LineBreak />
+			Mais aussi grâce à une poignée de Français déterminés à tout faire pour retrouver les voix françaises de l'époque sur le jeu.<LineBreak />
 			<Bold>
 				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://www.paypal.com/donate/?hosted_button_id=CYJX4ABU4M3UY">
 					Fotia
@@ -153,14 +153,13 @@
 				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/Noxalus">Noxalus</TextBlock>
 			</Bold>) j'ai initié ce projet 2 semaines avant
 			la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.<LineBreak />
-			Si vous appréciez mon travail, vous pouvez toujours me remercier, et moi seul, en m'offrant une pizza ! :p
+			<LineBreak />
+			Pour héberger les gros fichiers du patch sur GitHub, il est nécessaire de payer 5$/mois. Vous pouvez aider financièrement le projet en donant via ce bouton:
 			<LineBreak />
 			<LineBreak />
 			<InlineUIContainer>
 				<Image Source="Resources/Images/donate.png" Height="50" PointerPressed="OnDonateClick"></Image>
 			</InlineUIContainer>
-			<LineBreak />
-			<LineBreak />
 		</TextBlock>
 		<TextBlock x:Name="RandomQuotes" Grid.Column="0" Grid.Row="3" TextWrapping="Wrap" Padding="5" TextAlignment="Center" Foreground="Black" FontStyle="Italic">{Binding RandomQuote}</TextBlock>
 	</Grid>

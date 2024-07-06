@@ -394,6 +394,9 @@ public partial class MainWindow : Window
 
     private async Task Patch(string gameFolder)
     {
+        FinishedState();
+        return;
+
         try
         {
             var patchesExtractionFolder = Path.Combine(PATCH_FOLDER, KH1_PATCH_EXTRACTION_FOLDER_NAME);
@@ -694,7 +697,7 @@ public partial class MainWindow : Window
     {
         if (sender is TextBlock textBlock && textBlock.Text != null)
         {
-            OpenURL(textBlock.Text);
+            OpenURL(textBlock.Tag.ToString());
         }
 
         e.Handled = true;
