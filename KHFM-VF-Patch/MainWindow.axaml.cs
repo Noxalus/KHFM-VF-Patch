@@ -316,16 +316,16 @@ public partial class MainWindow : Window
 
         if (result.Count == 1)
         {
-            var selectedDirectoryPath = result[0].Path;
-            Debug.WriteLine($"Selected: {selectedDirectoryPath.AbsolutePath}");
+            var path = result[0].Path.LocalPath;
+            Debug.WriteLine($"Selected: {path}");
 
-            /*
             // Check if install is a Steam install
-            var isSteamInstall = Directory.Exists(Path.Combine(result, "STEAM"));
+            var steamFolder = Path.Combine(path, "STEAM");
+            var isSteamInstall = Directory.Exists(steamFolder);
 
-            if (CheckGameFolder(result, isSteamInstall))
+            if (CheckGameFolder(path, isSteamInstall))
             {
-                _selectedGameFolder = result;
+                _selectedGameFolder = path;
                 _isSteamInstall = isSteamInstall;
                 ReadyToPatchState();
             }
@@ -335,9 +335,8 @@ public partial class MainWindow : Window
                     "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
                     "Il doit s'agir du dossier dans lequel l'Epic Game Store ou Steam a téléchargé les fichiers du jeu.\n" +
                     "Le dossier que vous avez donné: ";
-                GameNotFoundWarningMessage.Inlines.Add(new TextBlock { Text = $"\"{result}\"", FontStyle = FontStyle.Italic });
+                GameNotFoundWarningMessage.Inlines.Add(new TextBlock { Text = $"\"{path}\"", FontStyle = FontStyle.Italic });
             }
-            */
         }
     }
 
