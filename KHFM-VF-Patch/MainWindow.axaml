@@ -10,16 +10,26 @@
 		CanResize="False"
 		Icon="icon.png"
         Title="Kingdom Hearts Final Mix - Patch VF">
-    <Grid x:Name="MainGrid" Margin="20,0,20,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="250" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontFamily" Value="Segoe UI" />
+			<Setter Property="FontSize" Value="13" />
+		</Style>
+		<Style Selector="TextBlock.ItalicBold">
+			<Setter Property="FontStyle" Value="Italic"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+	</Window.Styles>
+	<Grid x:Name="MainGrid" Margin="20,0,20,0">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="250" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
 
 		<Image Grid.Column="0" Grid.Row="0" Margin="0,0,0,10" Source="Resources/Images/logo.png" RenderTransformOrigin="0.5,0">
 			<Image.RenderTransform>
@@ -70,11 +80,9 @@
 			</DockPanel>
 		</StackPanel>
 
-		<TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FFFF0505">
-			<Italic>
-				Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. <LineBreak />
-				Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu.
-			</Italic>
+		<TextBlock x:Name="GameNotFoundWarningMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" Classes="ItalicBold" TextAlignment="Center" Foreground="#FFFF0505">
+			Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX n'a pas été trouvé automatiquement. <LineBreak />
+			Cliquez sur le bouton ci-dessous pour indiquer où vous avez installé le jeu.
 		</TextBlock>
 		<Button Grid.Column="0" Grid.Row="3" x:Name="IgnoreSaveButton" Width="450" Height="60" Content="Ignorer la sauvegarde" Click="IgnoreSaveButtonClick" Background="#FFD32626" Foreground="White" FontWeight="Bold" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Center"/>
 		<TextBlock x:Name="GameFoundMessage" Grid.Column="0" Grid.Row="1" TextWrapping="Wrap" Padding="5" FontWeight="Bold" TextAlignment="Center" Foreground="#FF56BF5F">Le dossier du jeu semble correct et est prêt à être patché ! Cliquez sur le bouton ci-dessous lorsque vous êtes prêt.</TextBlock>

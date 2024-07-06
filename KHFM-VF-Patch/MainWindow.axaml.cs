@@ -343,7 +343,7 @@ public partial class MainWindow : Window
                     "Le dossier d'installation de Kingdom Hearts HD 1.5 + 2.5 ReMIX que vous avez spécifié n'est pas valide.\n" +
                     "Il doit s'agir du dossier dans lequel l'Epic Game Store ou Steam a téléchargé les fichiers du jeu.\n" +
                     "Le dossier que vous avez donné: ";
-                GameNotFoundWarningMessage.Inlines.Add(new TextBlock { Text = $"\"{path}\"", FontStyle = FontStyle.Italic });
+                GameNotFoundWarningMessage.Inlines?.Add(new TextBlock { Text = path });
             }
         }
     }
