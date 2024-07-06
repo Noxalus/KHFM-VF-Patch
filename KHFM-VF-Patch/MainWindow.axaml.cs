@@ -13,6 +13,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Linq;
 
 namespace KHFM_VF_Patch;
 
@@ -77,13 +78,13 @@ public partial class MainWindow : Window
     private const string SAVE_FOLDER_NAME = "Patch/Saves";
     private const string PATCHED_FILES_FOLDER_NAME = "Patch/Temp";
 
-    private static readonly List<string> REQUIRED_FILE_NAMES = new List<string>
-        {
-            "kh1_first.pkg", "kh1_first.hed",
-            "kh1_third.pkg", "kh1_third.hed",
-            "kh1_fourth.pkg", "kh1_fourth.hed",
-            "kh1_fifth.pkg", "kh1_fifth.hed",
-        };
+    private static readonly List<string> REQUIRED_FILE_NAMES =
+    [
+        "kh1_first.pkg", "kh1_first.hed",
+        "kh1_third.pkg", "kh1_third.hed",
+        "kh1_fourth.pkg", "kh1_fourth.hed",
+        "kh1_fifth.pkg", "kh1_fifth.hed",
+    ];
 
     #endregion
 
@@ -318,6 +319,7 @@ public partial class MainWindow : Window
         {
             var path = result[0].Path.LocalPath;
             Debug.WriteLine($"Selected: {path}");
+            Console.WriteLine($"Selected: {path}");
 
             // Check if install is a Steam install
             var steamFolder = Path.Combine(path, "STEAM");
@@ -561,6 +563,44 @@ public partial class MainWindow : Window
         return true;
     }
 
+    public static string GetMountPoint(string path)
+    {
+        path = Path.GetFullPath(path);
+        while (!Directory.Exists(path))
+        {
+            path = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(path))
+                throw new InvalidOperationException("Could not find the mount point.");
+        }
+
+        if (File.Exists("/proc/mounts"))
+        {
+            var lines = File.ReadAllLines("/proc/mounts");
+            var mountPoints = lines.Select(line => line.Split(' ')[1]).ToList();
+
+            while (!mountPoints.Contains(path) && path != "/")
+            {
+                path = Path.GetDirectoryName(path);
+            }
+        }
+
+        return path;
+    }
+
+    private void CheckSpaceClick(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_selectedGameFolder))
+        {
+            return;
+        }
+
+        var mountPoint = GetMountPoint(_selectedGameFolder);
+        var drive = new DriveInfo(mountPoint);
+
+        var freespace = drive.AvailableFreeSpace;
+        RemainingSpace.Text = $"Available space at {drive.Name}: {freespace / (1024 * 1024 * 1024)} GB";
+    }
+
     private bool CheckRemainingSpace(string folder)
     {
         // Required at least 4GB to save original files
@@ -569,8 +609,8 @@ public partial class MainWindow : Window
 
     private long GetFreeSpace(string folder)
     {
-        var folderInfo = new FileInfo(folder);
-        var drive = new DriveInfo(folderInfo.Directory.Root.FullName);
+        var mountPoint = GetMountPoint(folder);
+        var drive = new DriveInfo(mountPoint);
 
         // Required at least 4GB to save original files
         return drive.AvailableFreeSpace;

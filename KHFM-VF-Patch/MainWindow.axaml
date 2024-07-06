@@ -155,5 +155,10 @@
 			<LineBreak />
 		</TextBlock>
 		<TextBlock x:Name="RandomQuotes" Grid.Column="0" Grid.Row="3" TextWrapping="Wrap" Padding="5" TextAlignment="Center" Foreground="Black" FontStyle="Italic">{Binding RandomQuote}</TextBlock>
+
+		<StackPanel>
+			<Button Content="Check Disk Space" Click="CheckSpaceClick" Width="150" Margin="10"/>
+			<TextBlock x:Name="RemainingSpace" Text="--" Width="3000" Margin="10"/>
+		</StackPanel>
 	</Grid>
 </Window>
