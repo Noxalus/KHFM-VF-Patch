@@ -44,6 +44,13 @@
 
 		<StackPanel x:Name="PatchOptions" Grid.Column="0" Grid.Row="2">
 			<DockPanel>
+				<CheckBox x:Name="PatchVideosOption" Content="Mettre à jour les vidéos" FontWeight="Bold" />
+			</DockPanel>
+			<DockPanel Margin="20,0,0,20">
+				<TextBlock TextWrapping="Wrap" FontSize="10">Remplacer la piste audio et les sous-titres des vidéos pré-rendues de début et de fin de jeu.</TextBlock>
+			</DockPanel>
+			
+			<DockPanel>
 				<CheckBox x:Name="PatchMagicOption" FontWeight="Bold" Content="Appliquer la correction de &quot;Magic&quot; en &quot;Magie&quot;" />
 			</DockPanel>
 			<DockPanel Margin="20,0,0,0">
@@ -52,7 +59,7 @@
 			</DockPanel>
 
 			<DockPanel>
-				<CheckBox x:Name="PatchTextureOption" Content="Appliquer les corrections de traduction." FontWeight="Bold" />
+				<CheckBox x:Name="PatchTextureOption" Content="Appliquer les corrections de traduction" FontWeight="Bold" />
 			</DockPanel>
 			<DockPanel Margin="20,0,0,0">
 				<TextBlock TextWrapping="Wrap" Width="450" FontSize="10">
@@ -64,9 +71,6 @@
 					</TextBlock>
 				</TextBlock>
 				<Image Source="Resources/Images/TexturePatch.png" Margin="0,-20,0,0" Height="100" HorizontalAlignment="Right" />
-			</DockPanel>
-
-			<DockPanel Margin="0,0,0,0">
 			</DockPanel>
 
 			<DockPanel x:Name="SaveOriginalFilesCheckbox">

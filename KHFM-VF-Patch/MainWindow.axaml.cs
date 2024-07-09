@@ -85,6 +85,7 @@ public partial class MainWindow : Window
     private bool _isSteamInstall;
     private bool _shouldPatchMagic;
     private bool _shouldPatchTexture;
+    private bool _shouldPatchVideos;
     private bool _shouldSaveOriginalFiles;
     private Random _random = new Random();
 
@@ -119,6 +120,19 @@ public partial class MainWindow : Window
         }
     }
 
+    public bool ShouldPatchVideos
+    {
+        get { return _shouldPatchVideos; }
+        set
+        {
+            if (_shouldPatchVideos != value)
+            {
+                _shouldPatchVideos = value;
+                PatchVideosOption.IsChecked = value;
+            }
+        }
+    }
+
     public bool ShouldSaveOriginalFiles
     {
         get { return _shouldSaveOriginalFiles; }
@@ -141,11 +155,13 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         // Enable all options by default
+        ShouldPatchVideos = true;
         ShouldPatchMagic = true;
         ShouldPatchTexture = true;
         ShouldSaveOriginalFiles = true;
 
         // Don't use data binding as I don't want to use MVVM pattern for a such simple app
+        PatchVideosOption.IsCheckedChanged += PatchVideosOption_IsCheckedChanged;
         PatchMagicOption.IsCheckedChanged += OnPatchMagicOption_IsCheckedChanged;
         PatchTextureOption.IsCheckedChanged += PatchTextureOption_IsCheckedChanged;
         SaveOriginalFilesOption.IsCheckedChanged += SaveOriginalFilesOption_IsCheckedChanged;
@@ -197,6 +213,18 @@ public partial class MainWindow : Window
         }
     }
 
+    #region Checkbox callbacks
+
+    // These should not be needed if we can use data binding...
+
+    private void PatchVideosOption_IsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkbox)
+        {
+            _shouldPatchVideos = checkbox.IsChecked.HasValue && checkbox.IsChecked.Value;
+        }
+    }
+
     private void OnPatchMagicOption_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (sender is CheckBox checkbox)
@@ -220,6 +248,8 @@ public partial class MainWindow : Window
             _shouldSaveOriginalFiles = checkbox.IsChecked.HasValue && checkbox.IsChecked.Value;
         }
     }
+
+    #endregion
 
     #endregion
 
@@ -263,7 +293,7 @@ public partial class MainWindow : Window
         if (!ShouldSaveOriginalFiles || CheckRemainingSpace(_selectedGameFolder))
         {
             SetUIVisibility(patch: true, gameFound: true, patchOptions: true, saveOriginalFiles: ShouldSaveOriginalFiles);
-            SetImageHeight(75);
+            SetImageHeight(0);
         }
         else
         {
@@ -401,7 +431,10 @@ public partial class MainWindow : Window
                 Directory.Delete(patchesExtractionFolder, true);
 
             // Update videos if the corresponding patch is found
-            await PatchVideos();
+            if (ShouldPatchVideos)
+            {
+                await PatchVideos();
+            }
 
             // Extract VF patch files
             await ExtractPatch(KH1_PATCH_VOICES_ZIP_NAME);
