@@ -177,11 +177,13 @@ public partial class MainWindow : Window
         // Check default installation folder for Steam
         else if (CheckGameFolder(DEFAULT_STEAM_FOLDER, true))
         {
+            _isSteamInstall = true;
             _selectedGameFolder = DEFAULT_STEAM_FOLDER;
         }
         // Check default installation folder for the Steam Deck
         else if (CheckGameFolder(DEFAULT_STEAM_DECK_FOLDER, true))
         {
+            _isSteamInstall = true;
             _selectedGameFolder = DEFAULT_STEAM_DECK_FOLDER;
         }
 
