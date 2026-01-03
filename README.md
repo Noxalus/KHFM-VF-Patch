@@ -41,9 +41,3 @@ Mais cela a également été possible grâce à une poignée de français déter
 - [DylanCa](https://github.com/DylanCa): pour avoir porté le patch pour la version Steam
 
 De mon côté ([Noxalus]("https://twitter.com/Noxalus")) j'ai initié ce projet 2 semaines avant la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.
-
-Pour héberger les gros fichiers du patch sur GitHub, il est nécessaire de payer 5$/mois. Vous pouvez aider financièrement le projet en donant via ce bouton:
-
-<p align="center">
-  <a href="https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR"><img src="KHFM-VF-Patch/Resources/Images/donate.png" alt="logo" width="200"/></href>
-</p>

@@ -118,7 +118,7 @@
 
 			Mais aussi grâce à une poignée de Français déterminés à tout faire pour retrouver les voix françaises de l'époque sur le jeu.<LineBreak />
 			<Bold>
-				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://www.paypal.com/donate/?hosted_button_id=CYJX4ABU4M3UY">
+				<TextBlock>
 					Fotia
 				</TextBlock>
 			</Bold>: qui s'est occupé de corriger l'ordre des voix pendant les combats, du logo et des voix sur les nouvelles scènes de Final Mix.<LineBreak />
@@ -157,13 +157,6 @@
 				<TextBlock Foreground="Blue" TextDecorations="Underline" Cursor="Hand" PointerPressed="ClickToOpenURL" Tag="https://twitter.com/Noxalus">Noxalus</TextBlock>
 			</Bold>) j'ai initié ce projet 2 semaines avant
 			la sortie du jeu et j'ai créé 2 outils au coeur de ce patch, le premier permet de remplacer certains fichiers du jeu et le second permet de convertir les voix françaises de la version PS2 au format PC.<LineBreak />
-			<LineBreak />
-			Pour héberger les gros fichiers du patch sur GitHub, il est nécessaire de payer 5$/mois. Vous pouvez aider financièrement le projet en donant via ce bouton:
-			<LineBreak />
-			<LineBreak />
-			<InlineUIContainer>
-				<Image Source="Resources/Images/donate.png" Height="50" PointerPressed="OnDonateClick"></Image>
-			</InlineUIContainer>
 		</TextBlock>
 		<TextBlock x:Name="RandomQuotes" Grid.Column="0" Grid.Row="3" TextWrapping="Wrap" Padding="5" TextAlignment="Center" Foreground="Black" FontStyle="Italic">{Binding RandomQuote}</TextBlock>
 	</Grid>

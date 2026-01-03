@@ -52,7 +52,6 @@ public partial class MainWindow : Window
         "Un patch pour rétablir les voix françaises sur Kingdom Hearts 2 a été créé par TieuLink sur le site Nexus Mods !",
     ];
 
-    private const string DONATE_URL = "https://www.paypal.com/donate/?business=QB2DD2YWXZ79E&currency_code=EUR";
     private const string KH1_PATCH_VOICES_ZIP_NAME = "KH1FM-Voices.patch";
     private const string KH1_PATCH_VIDEOS_ZIP_NAME = "KH1FM-Videos.patch";
     private const string KH1_PATCH_TEXTURES_ZIP_NAME = "KH1FM-Textures.patch";
@@ -781,12 +780,6 @@ public partial class MainWindow : Window
             }
         }
 
-        e.Handled = true;
-    }
-
-    private void OnDonateClick(object sender, PointerPressedEventArgs e)
-    {
-        OpenURL(DONATE_URL);
         e.Handled = true;
     }
 
